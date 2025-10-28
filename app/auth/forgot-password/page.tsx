@@ -48,7 +48,7 @@ export default function ForgotPassword() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
-          <p className="text-gray-600">No worries, we'll send you reset instructions</p>
+          <p className="text-gray-600">No worries, we&apos;ll send you reset instructions</p>
         </div>
 
         {/* Card */}
@@ -63,7 +63,7 @@ export default function ForgotPassword() {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-green-800">Check your email</p>
                   <p className="mt-1 text-sm text-green-700">
-                    If an account exists with this email, you'll receive password reset instructions shortly.
+                    If an account exists with this email, you&apos;ll receive password reset instructions shortly.
                   </p>
                 </div>
               </div>
@@ -127,7 +127,7 @@ export default function ForgotPassword() {
               </svg>
               <div className="flex-1">
                 <p className="text-sm text-blue-800">
-                  <span className="font-medium">Didn't receive the email?</span>
+                  <span className="font-medium">Didn&apos;t receive the email?</span>
                   <br />
                   Check your spam folder or try again with a different email address.
                 </p>

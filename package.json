@@ -9,6 +9,9 @@
     "lint": "next lint",
     "postinstall": "prisma generate"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.490.0",
     "@hookform/resolvers": "^3.3.0",

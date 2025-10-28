@@ -9,16 +9,22 @@ Edge Book is a social platform where sports betting enthusiasts can share and mo
 
 ### 1. User System
 - **Single User Role**: All users can both post predictions and view content
-- **User Profiles** include:
-  - Username, bio, profile picture
-  - Social media connections (Instagram, Facebook, YouTube, etc.)
-  - Prediction statistics:
-    - Total predictions made
-    - Accuracy rate/percentage
-    - Win/loss record
-    - Performance by sport category
-  - Earnings/spending history
-  - Follower/following counts
+$ cd /Users/hyder/edgebook && npm run build
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/api/payments/create-payment-intent/route.ts:8:3
+Type error: Type '"2024-12-18.acacia"' is not assignable to type '"2023-10-16"'.
+
+   6 |
+   7 | const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+>  8 |   apiVersion: '2024-12-18.acacia',
+     |   ^
+   9 | })
+  10 |
+  11 | const PLATFORM_FEE_PERCENTAGE = 0.15 // 15%
+$ 
 
 ### 2. Feed System (Twitter-like)
 - Chronological and algorithmic feed options

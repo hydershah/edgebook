@@ -13,23 +13,49 @@ export default function SignUp() {
     password: '',
     confirmPassword: '',
   })
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string
+    email?: string
+    password?: string
+    confirmPassword?: string
+  }>({})
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccess('')
+    const trimmedName = formData.name.trim()
+    const trimmedEmail = formData.email.trim().toLowerCase()
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
+    const validationErrors: typeof fieldErrors = {}
+
+    if (trimmedName.length < 2) {
+      validationErrors.name = 'Name must be at least 2 characters'
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      validationErrors.email = 'Enter a valid email address'
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+      validationErrors.password = 'Password must be at least 8 characters'
+    } else if (!/[A-Za-z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
+      validationErrors.password = 'Password must include letters and numbers'
+    }
+
+    if (formData.confirmPassword !== formData.password) {
+      validationErrors.confirmPassword = 'Passwords do not match'
+    }
+
+    setFieldErrors(validationErrors)
+
+    if (Object.keys(validationErrors).length > 0) {
       return
     }
 
@@ -40,8 +66,8 @@ export default function SignUp() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
+          name: trimmedName,
+          email: trimmedEmail,
           password: formData.password,
         }),
       })
@@ -193,65 +219,163 @@ export default function SignUp() {
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 Name
               </label>
-              <input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none"
-                required
-                disabled={loading || socialLoading !== null}
-              />
+              <div className="relative">
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value })
+                    if (fieldErrors.name) {
+                      setFieldErrors((prev) => ({ ...prev, name: undefined }))
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none ${
+                    fieldErrors.name ? 'border-red-400 focus:ring-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                  disabled={loading || socialLoading !== null}
+                  aria-invalid={fieldErrors.name ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.name ? 'name-error' : undefined}
+                />
+              </div>
+              {fieldErrors.name && (
+                <p id="name-error" className="mt-1 text-xs text-red-600">
+                  {fieldErrors.name}
+                </p>
+              )}
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none"
-                required
-                disabled={loading || socialLoading !== null}
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value })
+                    if (fieldErrors.email) {
+                      setFieldErrors((prev) => ({ ...prev, email: undefined }))
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none ${
+                    fieldErrors.email ? 'border-red-400 focus:ring-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                  disabled={loading || socialLoading !== null}
+                  aria-invalid={fieldErrors.email ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                />
+              </div>
+              {fieldErrors.email && (
+                <p id="email-error" className="mt-1 text-xs text-red-600">
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none"
-                required
-                disabled={loading || socialLoading !== null}
-              />
-              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value })
+                    if (fieldErrors.password) {
+                      setFieldErrors((prev) => ({ ...prev, password: undefined }))
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none ${
+                    fieldErrors.password ? 'border-red-400 focus:ring-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                  disabled={loading || socialLoading !== null}
+                  aria-invalid={fieldErrors.password ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.98 8.223a10.477 10.477 0 011.65-1.933m2.772-1.836A10.45 10.45 0 0112 3c5.052 0 9.298 3.553 10.5 8.25a10.523 10.523 0 01-1.563 3.029m-1.522 1.712A10.451 10.451 0 0112 19.5a10.45 10.45 0 01-4.273-.912m-1.712-1.024A10.523 10.523 0 011.5 11.25a10.5 10.5 0 011.113-2.507M9.53 9.53a3 3 0 014.243 4.243m0 0l3.182 3.182M13.773 13.773a3 3 0 01-4.243-4.243m0 0L6.53 6.53" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .638C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters with letters and numbers</p>
+              {fieldErrors.password && (
+                <p id="password-error" className="mt-1 text-xs text-red-600">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm Password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none"
-                required
-                disabled={loading || socialLoading !== null}
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData({ ...formData, confirmPassword: e.target.value })
+                    if (fieldErrors.confirmPassword) {
+                      setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }))
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow duration-200 outline-none ${
+                    fieldErrors.confirmPassword ? 'border-red-400 focus:ring-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                  disabled={loading || socialLoading !== null}
+                  aria-invalid={fieldErrors.confirmPassword ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.confirmPassword ? 'confirmPassword-error' : undefined}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                >
+                  {showConfirmPassword ? (
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.98 8.223a10.477 10.477 0 011.65-1.933m2.772-1.836A10.45 10.45 0 0112 3c5.052 0 9.298 3.553 10.5 8.25a10.523 10.523 0 01-1.563 3.029m-1.522 1.712A10.451 10.451 0 0112 19.5a10.45 10.45 0 01-4.273-.912m-1.712-1.024A10.523 10.523 0 011.5 11.25a10.5 10.5 0 011.113-2.507M9.53 9.53a3 3 0 014.243 4.243m0 0l3.182 3.182M13.773 13.773a3 3 0 01-4.243-4.243m0 0L6.53 6.53" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .638C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {fieldErrors.confirmPassword && (
+                <p id="confirmPassword-error" className="mt-1 text-xs text-red-600">
+                  {fieldErrors.confirmPassword}
+                </p>
+              )}
             </div>
 
             <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">

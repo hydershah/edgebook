@@ -14,9 +14,9 @@ export default function ResponsibleGaming() {
         <ul className="list-disc pl-6 text-gray-700 mb-4">
           <li>Set a budget and stick to it</li>
           <li>Never chase losses</li>
-          <li>Don't bet more than you can afford to lose</li>
+          <li>Don&apos;t bet more than you can afford to lose</li>
           <li>Take regular breaks</li>
-          <li>Don't let betting interfere with work, relationships, or other responsibilities</li>
+          <li>Don&apos;t let betting interfere with work, relationships, or other responsibilities</li>
         </ul>
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Warning Signs</h2>
@@ -26,7 +26,7 @@ export default function ResponsibleGaming() {
         <ul className="list-disc pl-6 text-gray-700 mb-4">
           <li>Spend more money or time on betting than you intended</li>
           <li>Feel the need to bet with increasing amounts of money</li>
-          <li>Have tried to cut back on betting but haven't been able to</li>
+          <li>Have tried to cut back on betting but haven&apos;t been able to</li>
           <li>Feel restless or irritable when trying to stop betting</li>
           <li>Use betting to escape problems or relieve stress</li>
           <li>Lie to family or friends about your betting</li>

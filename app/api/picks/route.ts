@@ -11,9 +11,9 @@ const createPickSchema = z.object({
   details: z.string().min(1).max(1000),
   odds: z.string().optional(),
   gameDate: z.string().transform((str) => new Date(str)),
-  confidence: z.number().min(1).max(5),
+  confidence: z.coerce.number().min(1).max(5),
   isPremium: z.boolean(),
-  price: z.number().optional(),
+  price: z.coerce.number().optional(),
 })
 
 export async function GET(request: NextRequest) {
@@ -24,13 +24,15 @@ export async function GET(request: NextRequest) {
     const confidence = searchParams.get('confidence')
     const premiumOnly = searchParams.get('premiumOnly') === 'true'
     const followingOnly = searchParams.get('followingOnly') === 'true'
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
 
     const session = await getServerSession(authOptions)
 
     const where: any = {}
-    if (sport) where.sport = sport
-    if (status) where.status = status
-    if (confidence) where.confidence = parseInt(confidence)
+    if (sport && sport !== 'all') where.sport = sport
+    if (status && status !== 'all') where.status = status
+    if (confidence && confidence !== 'all') where.confidence = parseInt(confidence)
     if (premiumOnly) where.isPremium = true
 
     if (followingOnly && session?.user?.id) {
@@ -40,6 +42,8 @@ export async function GET(request: NextRequest) {
       })
       where.userId = { in: following.map((f) => f.followingId) }
     }
+
+    const skip = (page - 1) * limit
 
     const picks = await prisma.pick.findMany({
       where,
@@ -53,7 +57,8 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      skip,
+      take: limit,
     })
 
     return NextResponse.json(picks)

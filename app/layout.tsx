@@ -4,6 +4,8 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import RouteLoader from '@/components/RouteLoader'
+import { Suspense } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,6 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
+          <Suspense fallback={null}>
+            <RouteLoader />
+          </Suspense>
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">

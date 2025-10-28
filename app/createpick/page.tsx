@@ -1,251 +1,552 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Upload } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Video, Calendar, TrendingUp, Lock, DollarSign } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+const pickSchema = z
+  .object({
+    pickType: z.enum(['SINGLE', 'PARLAY'], { required_error: 'Pick type is required' }),
+    sport: z.enum(
+      ['NFL', 'NBA', 'MLB', 'NHL', 'SOCCER', 'COLLEGE_FOOTBALL', 'COLLEGE_BASKETBALL'],
+      { required_error: 'Sport is required' }
+    ),
+    matchup: z.string().trim().min(1, 'Matchup is required'),
+    details: z
+      .string()
+      .trim()
+      .min(1, 'Pick details are required')
+      .max(1000, 'Pick details must be under 1000 characters'),
+    odds: z
+      .string()
+      .optional()
+      .transform((value) => (value && value.trim().length > 0 ? value.trim() : undefined)),
+    gameDate: z.string().min(1, 'Game date is required'),
+    confidence: z.coerce.number().min(1, 'Confidence must be at least 1').max(5, 'Confidence cannot exceed 5'),
+    isPremium: z.boolean(),
+    price: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim()),
+  })
+  .superRefine((data, ctx) => {
+    if (data.isPremium) {
+      if (!data.price || data.price.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['price'],
+          message: 'Price is required for premium picks',
+        })
+        return
+      }
+
+      const parsed = Number.parseFloat(data.price)
+      if (Number.isNaN(parsed) || parsed <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['price'],
+          message: 'Enter a valid price greater than 0',
+        })
+      }
+    }
+  })
+
+type CreatePickFormValues = z.infer<typeof pickSchema>
 
 export default function CreatePickPage() {
   const router = useRouter()
-  const { data: session } = useSession()
-  const [loading, setLoading] = useState(false)
-  const [confidence, setConfidence] = useState(1)
-  const [formData, setFormData] = useState({
-    pickType: 'SINGLE',
-    sport: 'NFL',
-    matchup: '',
-    details: '',
-    odds: '',
-    gameDate: '',
-    isPremium: false,
-    price: '',
+  const { data: session, status } = useSession()
+  const [formError, setFormError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreatePickFormValues>({
+    mode: 'onSubmit',
+    resolver: zodResolver(pickSchema),
+    defaultValues: {
+      pickType: 'SINGLE',
+      sport: 'NFL',
+      matchup: '',
+      details: '',
+      odds: undefined,
+      gameDate: '',
+      confidence: 1,
+      isPremium: false,
+      price: '',
+    },
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const isPremium = watch('isPremium')
+  const confidenceValue = watch('confidence') ?? 1
+  const pickType = watch('pickType')
+  const sport = watch('sport')
+  const details = watch('details') || ''
+  const detailsLength = details.length
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    setLoading(true)
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true)
+    } else if (e.type === 'dragleave') {
+      setDragActive(false)
+    }
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    // TODO: Handle file upload
+  }, [])
+
+  const onSubmit = handleSubmit(async (values) => {
+    setFormError(null)
 
     try {
       const response = await fetch('/api/picks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          confidence,
-          gameDate: new Date(formData.gameDate),
+          pickType: values.pickType,
+          sport: values.sport,
+          matchup: values.matchup,
+          details: values.details,
+          odds: values.odds,
+          gameDate: values.gameDate,
+          confidence: values.confidence,
+          isPremium: values.isPremium,
+          price: values.isPremium ? Number(values.price) : undefined,
         }),
       })
 
       if (response.ok) {
         router.push('/feed')
+        return
       }
+
+      const data = await response.json().catch(() => null)
+
+      if (Array.isArray(data?.error)) {
+        data.error.forEach((issue: { path?: string[]; message: string }) => {
+          const field = issue.path?.[0]
+          if (field) {
+            setError(field as keyof CreatePickFormValues, {
+              type: 'server',
+              message: issue.message,
+            })
+          }
+        })
+        setFormError('Please review the highlighted fields and try again.')
+        return
+      }
+
+      if (data?.error) {
+        setFormError(typeof data.error === 'string' ? data.error : 'Failed to create pick.')
+        return
+      }
+
+      setFormError('Something went wrong while creating your pick. Please try again.')
     } catch (error) {
       console.error('Error creating pick:', error)
-    } finally {
-      setLoading(false)
+      setFormError('We could not save your pick. Please check your connection and try again.')
     }
-  }
+  })
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }))
-  }
+  const isAuthenticated = status === 'authenticated'
+
+  const sports = [
+    { value: 'NFL', label: 'NFL', icon: '🏈' },
+    { value: 'NBA', label: 'NBA', icon: '🏀' },
+    { value: 'MLB', label: 'MLB', icon: '⚾' },
+    { value: 'NHL', label: 'NHL', icon: '🏒' },
+    { value: 'SOCCER', label: 'Soccer', icon: '⚽' },
+    { value: 'COLLEGE_FOOTBALL', label: 'CFB', icon: '🏈' },
+    { value: 'COLLEGE_BASKETBALL', label: 'CBB', icon: '🏀' },
+  ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Create a Pick</h1>
-            <p className="text-gray-600 mt-1">
-              Share your betting insight with the community
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* User Profile Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-4">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                {session?.user?.name?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="flex-1">
+                <h2 className="font-semibold text-gray-900">{session?.user?.name || 'Anonymous'}</h2>
+                <p className="text-sm text-gray-500">Create a new pick</p>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Pick Type */}
+          {!isAuthenticated && (
+            <div className="bg-amber-50 border-b border-amber-100 px-5 py-3 text-sm text-amber-900">
+              <p>You need to sign in to post. You can draft below, but it won&apos;t submit until you sign in.</p>
+            </div>
+          )}
+
+          {formError && (
+            <div className="bg-red-50 border-b border-red-100 px-5 py-3 text-sm text-red-800">
+              {formError}
+            </div>
+          )}
+
+          <form onSubmit={onSubmit} className="p-5 space-y-5" noValidate>
+            {/* Pick Type Tabs */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pick Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="pickType"
-                value={formData.pickType}
-                onChange={handleChange}
-                className="select-field"
-                required
-              >
-                <option value="SINGLE">Single Pick</option>
-                <option value="PARLAY">Parlay</option>
-              </select>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setValue('pickType', 'SINGLE')}
+                  className={`flex-1 py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
+                    pickType === 'SINGLE'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  disabled={isSubmitting}
+                >
+                  Single Pick
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setValue('pickType', 'PARLAY')}
+                  className={`flex-1 py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
+                    pickType === 'PARLAY'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  disabled={isSubmitting}
+                >
+                  Parlay
+                </button>
+              </div>
+              {errors.pickType && (
+                <p className="mt-2 text-xs text-red-600">{errors.pickType.message}</p>
+              )}
             </div>
 
-            {/* Sport */}
+            {/* Sport Selection Pills */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sport <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="sport"
-                value={formData.sport}
-                onChange={handleChange}
-                className="select-field"
-                required
-              >
-                <option value="NFL">NFL</option>
-                <option value="NBA">NBA</option>
-                <option value="MLB">MLB</option>
-                <option value="NHL">NHL</option>
-                <option value="SOCCER">Soccer</option>
-                <option value="COLLEGE_FOOTBALL">College Football</option>
-                <option value="COLLEGE_BASKETBALL">College Basketball</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Sport</label>
+              <div className="flex flex-wrap gap-2">
+                {sports.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setValue('sport', s.value as any)}
+                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all ${
+                      sport === s.value
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    disabled={isSubmitting}
+                  >
+                    <span className="mr-1">{s.icon}</span>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              {errors.sport && (
+                <p className="mt-2 text-xs text-red-600">{errors.sport.message}</p>
+              )}
             </div>
 
-            {/* Your Pick Section */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
-              <h3 className="font-semibold text-gray-900">Your Pick</h3>
-
-              {/* Matchup */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Matchup <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="matchup"
-                  value={formData.matchup}
-                  onChange={handleChange}
-                  placeholder="e.g., Lakers vs Warriors"
-                  className="input-field"
-                  required
-                />
-              </div>
-
-              {/* Pick Details */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pick Details <span className="text-red-500">*</span> (1000 characters remaining)
-                </label>
-                <textarea
-                  name="details"
-                  value={formData.details}
-                  onChange={handleChange}
-                  placeholder="e.g., Lakers -5.5, LeBron Over 25.5 points"
-                  className="input-field min-h-[100px]"
-                  maxLength={1000}
-                  required
-                />
-              </div>
-
-              {/* Odds */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Odds</label>
-                <input
-                  type="text"
-                  name="odds"
-                  value={formData.odds}
-                  onChange={handleChange}
-                  placeholder="e.g., -110, +150"
-                  className="input-field"
-                />
-              </div>
-            </div>
-
-            {/* Add Photo or Video */}
+            {/* Matchup Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Add Photo or Video (Optional) • Max 5 min
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                <Upload className="mx-auto text-gray-400 mb-2" size={32} />
-                <p className="text-sm text-gray-600">Click to upload photo or video</p>
-              </div>
-            </div>
-
-            {/* Game Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Game Date</label>
               <input
-                type="date"
-                name="gameDate"
-                value={formData.gameDate}
-                onChange={handleChange}
-                className="input-field"
-                required
+                id="matchup"
+                type="text"
+                placeholder="What's the matchup? (e.g., Lakers vs Warriors)"
+                className={`w-full px-4 py-3 border-0 border-b-2 ${
+                  errors.matchup ? 'border-red-400' : 'border-gray-200'
+                } focus:border-primary focus:ring-0 focus:outline-none text-lg placeholder-gray-400 transition-colors`}
+                {...register('matchup')}
+                aria-invalid={errors.matchup ? 'true' : 'false'}
+                aria-describedby={errors.matchup ? 'matchup-error' : undefined}
+                disabled={isSubmitting}
               />
+              {errors.matchup && (
+                <p id="matchup-error" className="mt-2 text-xs text-red-600">
+                  {errors.matchup.message}
+                </p>
+              )}
             </div>
 
-            {/* Confidence Slider */}
+            {/* Pick Details Textarea */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confidence: {confidence} Unit{confidence > 1 ? 's' : ''}
-              </label>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">1 Unit</span>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={confidence}
-                  onChange={(e) => setConfidence(parseInt(e.target.value))}
-                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+              <div className="relative">
+                <textarea
+                  id="details"
+                  placeholder="Share your pick details, analysis, and reasoning... (e.g., Lakers -5.5, LeBron Over 25.5 points)"
+                  className={`w-full px-4 py-3 border ${
+                    errors.details ? 'border-red-400' : 'border-gray-200'
+                  } rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none min-h-[120px] resize-none placeholder-gray-400 transition-all`}
+                  maxLength={1000}
+                  {...register('details')}
+                  aria-invalid={errors.details ? 'true' : 'false'}
+                  aria-describedby={errors.details ? 'details-error' : undefined}
+                  disabled={isSubmitting}
                 />
-                <span className="text-sm text-gray-600">5 Units</span>
+                <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                  {detailsLength}/1000
+                </div>
+              </div>
+              {errors.details && (
+                <p id="details-error" className="mt-2 text-xs text-red-600">
+                  {errors.details.message}
+                </p>
+              )}
+            </div>
+
+            {/* Odds and Game Date Row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="odds">
+                  <TrendingUp className="inline w-4 h-4 mr-1" />
+                  Odds
+                </label>
+                <input
+                  id="odds"
+                  type="text"
+                  placeholder="-110"
+                  className={`w-full px-4 py-2.5 border ${
+                    errors.odds ? 'border-red-400' : 'border-gray-300'
+                  } rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all`}
+                  {...register('odds')}
+                  aria-invalid={errors.odds ? 'true' : 'false'}
+                  aria-describedby={errors.odds ? 'odds-error' : undefined}
+                  disabled={isSubmitting}
+                />
+                {errors.odds && (
+                  <p id="odds-error" className="mt-1 text-xs text-red-600">
+                    {errors.odds.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="gameDate">
+                  <Calendar className="inline w-4 h-4 mr-1" />
+                  Game Date
+                </label>
+                <input
+                  id="gameDate"
+                  type="date"
+                  className={`w-full px-4 py-2.5 border ${
+                    errors.gameDate ? 'border-red-400' : 'border-gray-300'
+                  } rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all`}
+                  {...register('gameDate')}
+                  aria-invalid={errors.gameDate ? 'true' : 'false'}
+                  aria-describedby={errors.gameDate ? 'gameDate-error' : undefined}
+                  disabled={isSubmitting}
+                />
+                {errors.gameDate && (
+                  <p id="gameDate-error" className="mt-1 text-xs text-red-600">
+                    {errors.gameDate.message}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Monetization Options */}
-            <div className="border-t pt-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Monetization Options</h3>
-              <div className="space-y-4">
-                <label className="flex items-start space-x-3">
-                  <input
-                    type="checkbox"
-                    name="isPremium"
-                    checked={formData.isPremium}
-                    onChange={handleChange}
-                    className="mt-1"
-                  />
-                  <div>
-                    <p className="font-medium text-gray-900">Sell as Individual Pick</p>
+            {/* Media Upload */}
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
+                dragActive
+                  ? 'border-primary bg-primary/5'
+                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex justify-center space-x-4 mb-3">
+                <ImageIcon className="text-gray-400" size={32} />
+                <Video className="text-gray-400" size={32} />
+              </div>
+              <p className="text-sm font-medium text-gray-700 mb-1">
+                Add photos or videos
+              </p>
+              <p className="text-xs text-gray-500">
+                Drag and drop or click to upload
+              </p>
+            </div>
+
+            {/* Confidence Level */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+              <label className="block text-sm font-medium text-gray-900 mb-4" htmlFor="confidence">
+                Confidence Level: <span className="text-primary font-bold">{confidenceValue} Unit{confidenceValue > 1 ? 's' : ''}</span>
+              </label>
+              <div className="space-y-3">
+                <input
+                  id="confidence"
+                  type="range"
+                  min={1}
+                  max={5}
+                  step={1}
+                  className="w-full h-2.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-primary slider"
+                  {...register('confidence', { valueAsNumber: true })}
+                  disabled={isSubmitting}
+                  style={{
+                    background: `linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) ${((confidenceValue - 1) / 4) * 100}%, #d1d5db ${((confidenceValue - 1) / 4) * 100}%, #d1d5db 100%)`
+                  }}
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Low</span>
+                  <span>Medium</span>
+                  <span>High</span>
+                </div>
+              </div>
+              {errors.confidence && (
+                <p className="mt-2 text-xs text-red-600">{errors.confidence.message}</p>
+              )}
+            </div>
+
+            {/* Premium Options */}
+            <div className="border-t border-gray-200 pt-5 space-y-4">
+              <div
+                className={`relative rounded-xl p-5 border-2 transition-all cursor-pointer ${
+                  isPremium
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => !isSubmitting && setValue('isPremium', !isPremium)}
+              >
+                <div className="flex items-start space-x-4">
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${
+                    isPremium ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    <Lock size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">Premium Pick</h3>
+                      {isPremium && (
+                        <span className="px-2 py-0.5 bg-primary text-white text-xs font-medium rounded-full">
+                          Active
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600">
-                      Charge a one-time fee for this specific pick (15% platform fee applies)
+                      Monetize this pick with a one-time purchase fee
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      15% platform fee applies
                     </p>
                   </div>
-                </label>
-
-                {formData.isPremium && (
                   <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    placeholder="Enter price (USD)"
-                    className="input-field"
-                    min="1"
-                    step="0.01"
+                    type="checkbox"
+                    className="mt-1.5 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary pointer-events-none"
+                    {...register('isPremium')}
+                    disabled={isSubmitting}
                   />
-                )}
+                </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-700">
-                    💡 Enable premium seller in your profile to offer monthly subscriptions
-                  </p>
+                {isPremium && (
+                  <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="price">
+                      <DollarSign className="inline w-4 h-4 mr-1" />
+                      Price (USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                      <input
+                        id="price"
+                        type="number"
+                        min={1}
+                        step="0.01"
+                        placeholder="9.99"
+                        className={`w-full pl-8 pr-4 py-2.5 border ${
+                          errors.price ? 'border-red-400' : 'border-gray-300'
+                        } rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all`}
+                        {...register('price')}
+                        aria-invalid={errors.price ? 'true' : 'false'}
+                        aria-describedby={errors.price ? 'price-error' : undefined}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {errors.price && (
+                      <p id="price-error" className="mt-2 text-xs text-red-600">
+                        {errors.price.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start space-x-3">
+                <div className="text-2xl">💡</div>
+                <div className="text-sm text-gray-700">
+                  <p className="font-medium mb-1">Want recurring revenue?</p>
+                  <p className="text-gray-600">Enable premium seller in your profile to offer monthly subscriptions</p>
                 </div>
               </div>
             </div>
 
             {/* Submit Button */}
-            <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? 'Posting...' : 'Post Pick'}
+            <button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Posting...
+                </span>
+              ) : (
+                'Post Pick'
+              )}
             </button>
           </form>
+        </div>
+
+        {/* Tips Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mt-4">
+          <h3 className="font-semibold text-gray-900 mb-3">Tips for great picks</h3>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li className="flex items-start">
+              <span className="text-primary mr-2">✓</span>
+              <span>Include detailed analysis and reasoning</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-2">✓</span>
+              <span>Add context about team news and injuries</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-2">✓</span>
+              <span>Be transparent about your confidence level</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-2">✓</span>
+              <span>Follow up with results to build credibility</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
