@@ -11,10 +11,12 @@ import {
   Wallet,
   Globe,
 } from 'lucide-react'
+import ComplianceConsent from '@/components/ComplianceConsent'
 
 export default function Home() {
   return (
     <div className="bg-white text-gray-900">
+      <ComplianceConsent />
       <section className="border-b border-gray-200 bg-gradient-to-br from-white via-background to-white/70">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-11 lg:px-8 lg:py-24">
           <div className="lg:col-span-6">

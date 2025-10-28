@@ -1,14 +1,37 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 function SignInContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/feed'
+  const { status } = useSession()
+  const rawCallbackUrl = searchParams.get('callbackUrl')
+  const callbackUrl = useMemo(() => {
+    if (!rawCallbackUrl) {
+      return '/feed'
+    }
+
+    if (rawCallbackUrl.startsWith('/')) {
+      return rawCallbackUrl
+    }
+
+    if (rawCallbackUrl.startsWith('http')) {
+      try {
+        const url = new URL(rawCallbackUrl)
+        if (typeof window !== 'undefined' && url.origin === window.location.origin) {
+          return `${url.pathname}${url.search}${url.hash}`
+        }
+      } catch {
+        // Ignore malformed URLs and fall back to default
+      }
+    }
+
+    return '/feed'
+  }, [rawCallbackUrl])
 
   const [formData, setFormData] = useState({
     email: '',
@@ -20,13 +43,19 @@ function SignInContent() {
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace(callbackUrl)
+    }
+  }, [status, router, callbackUrl])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    const trimmedEmail = formData.email.trim()
+    const normalizedEmail = formData.email.trim().toLowerCase()
     const validationErrors: typeof fieldErrors = {}
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       validationErrors.email = 'Enter a valid email address'
     }
 
@@ -44,9 +73,10 @@ function SignInContent() {
 
     try {
       const result = await signIn('credentials', {
-        email: trimmedEmail,
+        email: normalizedEmail,
         password: formData.password,
         redirect: false,
+        callbackUrl,
       })
 
       if (result?.error) {
