@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Users,
@@ -13,7 +16,178 @@ import {
 } from 'lucide-react'
 import ComplianceConsent from '@/components/ComplianceConsent'
 
+type AnimatedNumberProps = {
+  value: number
+  decimals?: number
+  prefix?: string
+  suffix?: string
+  duration?: number
+  delay?: number
+  className?: string
+  formatter?: (value: number) => string
+  isActive?: boolean
+}
+
+const easeOutCubic = (progress: number) => 1 - Math.pow(1 - progress, 3)
+
+function AnimatedNumber({
+  value,
+  decimals = 0,
+  prefix = '',
+  suffix = '',
+  duration = 1000,
+  delay = 0,
+  className,
+  formatter,
+  isActive = true,
+}: AnimatedNumberProps) {
+  const [displayValue, setDisplayValue] = useState(value)
+
+  useEffect(() => {
+    if (!isActive) {
+      setDisplayValue(value)
+      return
+    }
+
+    let frameId: number | null = null
+    let startTime: number | null = null
+    const startValue = 0
+
+    const step = (time: number) => {
+      if (startTime === null) {
+        startTime = time
+      }
+
+      const elapsed = time - startTime
+
+      if (delay && elapsed < delay) {
+        frameId = requestAnimationFrame(step)
+        return
+      }
+
+      const rawProgress = (elapsed - delay) / duration
+      const progress = Math.min(Math.max(rawProgress, 0), 1)
+      const easedProgress = easeOutCubic(progress)
+      const currentValue = startValue + (value - startValue) * easedProgress
+      setDisplayValue(currentValue)
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(step)
+      }
+    }
+
+    setDisplayValue(startValue)
+    frameId = requestAnimationFrame(step)
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId)
+      }
+    }
+  }, [value, duration, delay, isActive])
+
+  const resolvedValue = formatter ? formatter(displayValue) : Number(displayValue).toFixed(decimals)
+
+  return (
+    <span className={className}>
+      {prefix}
+      {resolvedValue}
+      {suffix}
+    </span>
+  )
+}
+
+function ProfileCardGlow() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 400 400"
+      preserveAspectRatio="xMidYMid slice"
+      className="h-full w-full"
+    >
+      <defs>
+        <radialGradient id="card-glow-gradient" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.35" />
+          <stop offset="60%" stopColor="#8B5CF6" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="card-glow-trail" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      <circle cx="200" cy="200" r="130" fill="url(#card-glow-gradient)">
+        <animate attributeName="r" values="120;180;120" dur="8s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.5;0.95;0.5" dur="6s" repeatCount="indefinite" />
+      </circle>
+
+      <path
+        d="M40 280 C140 200 260 320 360 240"
+        fill="none"
+        stroke="url(#card-glow-trail)"
+        strokeWidth="22"
+        strokeLinecap="round"
+        strokeOpacity="0.6"
+      >
+        <animate attributeName="stroke-width" values="18;30;18" dur="9s" repeatCount="indefinite" />
+        <animate attributeName="stroke-opacity" values="0.2;0.8;0.2" dur="5.5s" repeatCount="indefinite" />
+      </path>
+
+      <g opacity="0.7">
+        <circle cx="120" cy="120" r="6" fill="#38BDF8">
+          <animate attributeName="r" values="4;8;4" dur="4.5s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.2;0.9;0.2" dur="4.5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="300" cy="90" r="5" fill="#C084FC">
+          <animate attributeName="r" values="3;7;3" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.2;0.8;0.2" dur="6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="340" cy="300" r="7" fill="#22D3EE">
+          <animate attributeName="r" values="5;9;5" dur="7s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.2;0.8;0.2" dur="7s" repeatCount="indefinite" />
+        </circle>
+      </g>
+    </svg>
+  )
+}
+
 export default function Home() {
+  const [isCardActive, setIsCardActive] = useState(false)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const node = cardRef.current
+
+    if (!node) {
+      setIsCardActive(true)
+      return
+    }
+
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setIsCardActive(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsCardActive(true)
+            observer.disconnect()
+          }
+        })
+      },
+      {
+        threshold: 0.35,
+      }
+    )
+
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <div className="bg-white text-gray-900">
       <ComplianceConsent />
@@ -73,63 +247,140 @@ export default function Home() {
           </div>
 
           <div className="lg:col-span-5">
-            <div className="relative rounded-3xl border border-gray-200 bg-white/90 p-8 shadow-2xl shadow-primary/10 ring-1 ring-black/5 backdrop-blur">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Public profile snapshot</p>
-                  <h3 className="mt-1 text-xl font-semibold text-gray-900">Taylor Morgan</h3>
-                  <p className="text-sm text-gray-500">NBA &amp; MLB specialist</p>
-                </div>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">62% hit rate</span>
+            <div
+              ref={cardRef}
+              className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white/90 p-8 shadow-2xl shadow-primary/10 ring-1 ring-black/5 backdrop-blur transition-all duration-700 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_35px_90px_-25px_rgba(79,70,229,0.45)]"
+            >
+              <div className="pointer-events-none absolute -inset-14 opacity-70">
+                <ProfileCardGlow />
               </div>
-
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-background p-4">
-                  <p className="text-xs font-medium uppercase text-gray-500">Total picks</p>
-                  <p className="mt-1 text-2xl font-semibold text-gray-900">248</p>
-                  <p className="text-xs text-gray-500">82 premium • 166 free</p>
-                </div>
-                <div className="rounded-2xl bg-background p-4">
-                  <p className="text-xs font-medium uppercase text-gray-500">Return on units</p>
-                  <p className="mt-1 text-2xl font-semibold text-gray-900">+38.6</p>
-                  <p className="text-xs text-gray-500">Best run: +12u last 30 days</p>
-                </div>
-                <div className="rounded-2xl bg-background p-4">
-                  <p className="text-xs font-medium uppercase text-gray-500">Followers</p>
-                  <p className="mt-1 text-2xl font-semibold text-gray-900">4,832</p>
-                  <p className="text-xs text-gray-500">Avg unlock rate 41%</p>
-                </div>
-                <div className="rounded-2xl bg-background p-4">
-                  <p className="text-xs font-medium uppercase text-gray-500">Sport breakdown</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900">NBA 58% • MLB 65% • UFC 54%</p>
-                  <p className="text-xs text-gray-500">Updated after every result</p>
-                </div>
-              </div>
-
-              <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase text-gray-500">Latest premium picks</p>
-                <div className="mt-3 space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Dodgers @ Braves — Moneyline</span>
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">$11 unlock</span>
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-emerald-200/35 opacity-70 mix-blend-screen" />
+              <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/30" />
+              <div className="relative z-10">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Public profile snapshot</p>
+                    <h3 className="mt-1 text-xl font-semibold text-gray-900">Taylor Morgan</h3>
+                    <p className="text-sm text-gray-500">NBA &amp; MLB specialist</p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Timberwolves +3.5 — Spread</span>
-                    <span className="text-xs font-semibold text-gray-500">Unlocked by you</span>
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <AnimatedNumber
+                      value={62}
+                      suffix="% hit rate"
+                      isActive={isCardActive}
+                      delay={80}
+                      formatter={(val) => Math.round(val).toString()}
+                    />
+                  </span>
+                </div>
+
+                <div className="mt-8 grid grid-cols-2 gap-4">
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-xs font-medium uppercase text-gray-500">Total picks</p>
+                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                      <AnimatedNumber value={248} isActive={isCardActive} delay={120} />
+                    </p>
+                    <p className="text-xs text-gray-500">82 premium • 166 free</p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Red Sox @ Yankees — Over 8.5</span>
-                    <span className="text-xs font-semibold text-gray-500">Pending • 2u</span>
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-xs font-medium uppercase text-gray-500">Return on units</p>
+                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                      <AnimatedNumber value={38.6} decimals={1} prefix="+" isActive={isCardActive} delay={220} />
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Best run:{' '}
+                      <AnimatedNumber
+                        value={12}
+                        prefix="+"
+                        suffix="u"
+                        isActive={isCardActive}
+                        delay={320}
+                        formatter={(val) => Math.round(val).toString()}
+                      />{' '}
+                      last 30 days
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-xs font-medium uppercase text-gray-500">Followers</p>
+                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                      <AnimatedNumber
+                        value={4832}
+                        isActive={isCardActive}
+                        delay={260}
+                        formatter={(val) => Math.round(val).toLocaleString()}
+                      />
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Avg unlock rate{' '}
+                      <AnimatedNumber
+                        value={41}
+                        suffix="%"
+                        isActive={isCardActive}
+                        delay={360}
+                        formatter={(val) => Math.round(val).toString()}
+                      />
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-xs font-medium uppercase text-gray-500">Sport breakdown</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900">
+                      NBA{' '}
+                      <AnimatedNumber
+                        value={58}
+                        suffix="%"
+                        isActive={isCardActive}
+                        delay={300}
+                        formatter={(val) => Math.round(val).toString()}
+                      />{' '}
+                      • MLB{' '}
+                      <AnimatedNumber
+                        value={65}
+                        suffix="%"
+                        isActive={isCardActive}
+                        delay={360}
+                        formatter={(val) => Math.round(val).toString()}
+                      />{' '}
+                      • UFC{' '}
+                      <AnimatedNumber
+                        value={54}
+                        suffix="%"
+                        isActive={isCardActive}
+                        delay={420}
+                        formatter={(val) => Math.round(val).toString()}
+                      />
+                    </p>
+                    <p className="text-xs text-gray-500">Updated after every result</p>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
-                <span>Transaction history &amp; wallet balance synced in real time</span>
-                <Link href="/profile" className="inline-flex items-center gap-1 text-primary transition hover:text-primary-dark">
-                  View profile
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase text-gray-500">Latest premium picks</p>
+                  <div className="mt-3 space-y-3 text-sm text-gray-600">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900">Dodgers @ Braves — Moneyline</span>
+                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">$11 unlock</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900">Timberwolves +3.5 — Spread</span>
+                      <span className="text-xs font-semibold text-gray-500">Unlocked by you</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900">Red Sox @ Yankees — Over 8.5</span>
+                      <span className="text-xs font-semibold text-gray-500">Pending • 2u</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
+                  <span>Transaction history &amp; wallet balance synced in real time</span>
+                  <Link
+                    href="/profile"
+                    className="group inline-flex items-center gap-1 text-primary transition hover:text-primary-dark"
+                  >
+                    View profile
+                    <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
