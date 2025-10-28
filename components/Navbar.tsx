@@ -19,6 +19,7 @@ export default function Navbar() {
   const { data: session } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement | null>(null)
   const avatarInitial = session?.user?.name?.[0]?.toUpperCase() || 'U'
 
@@ -30,6 +31,15 @@ export default function Navbar() {
     ],
     [],
   )
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
     if (!isProfileMenuOpen) return
@@ -83,7 +93,9 @@ export default function Navbar() {
               </div>
               <div>
                 <span className="block text-lg font-semibold text-gray-900">EdgeBook</span>
-                <span className="block text-xs font-medium uppercase tracking-wider text-gray-400">
+                <span className={`block text-xs font-medium uppercase tracking-wider transition-colors duration-200 ${
+                  isScrolled ? 'text-gray-900' : 'text-gray-400'
+                }`}>
                   Find Your Edge
                 </span>
               </div>

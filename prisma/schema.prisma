@@ -198,16 +198,25 @@ model Transaction {
 }
 
 model User {
-  id                              String          @id @default(cuid())
-  email                           String          @unique
+  id                              String            @id @default(cuid())
+  email                           String            @unique
+  username                        String?           @unique
   name                            String?
   password                        String?
   avatar                          String?
+  coverPhoto                      String?
   bio                             String?
-  isPremium                       Boolean         @default(false)
+  phone                           String?
+  birthday                        DateTime?
+  gender                          String?
+  location                        String?
+  isPremium                       Boolean           @default(false)
+  isVerified                      Boolean           @default(false)
   stripeCustomerId                String?
-  createdAt                       DateTime        @default(now())
-  updatedAt                       DateTime        @updatedAt
+  stripeAccountId                 String?
+  subscriptionPrice               Float?
+  createdAt                       DateTime          @default(now())
+  updatedAt                       DateTime          @updatedAt
   instagram                       String?
   facebook                        String?
   youtube                         String?
@@ -215,12 +224,17 @@ model User {
   tiktok                          String?
   website                         String?
   emailVerified                   DateTime?
+  twoFactorEnabled                Boolean           @default(false)
+  twoFactorSecret                 String?
+  theme                           String            @default("light")
+  notificationPreferences         Json?
+  privacySettings                 Json?
   accounts                        Account[]
   bookmarks                       Bookmark[]
   chats                           Chat[]
   comments                        Comment[]
-  followers                       Follow[]        @relation("Follow_followerIdToUser")
-  following                       Follow[]        @relation("Follow_followingIdToUser")
+  followers                       Follow[]          @relation("Follow_followerIdToUser")
+  following                       Follow[]          @relation("Follow_followingIdToUser")
   likes                           Like[]
   passwordResets                  PasswordReset[]
   picks                           Pick[]
@@ -229,6 +243,9 @@ model User {
   subscriptions                   Subscription[]
   transactions                    Transaction[]
   views                           View[]
+  loginActivities                 LoginActivity[]
+
+  @@index([username])
 }
 
 model View {
@@ -242,6 +259,20 @@ model View {
 
   @@index([pickId])
   @@index([userId])
+}
+
+model LoginActivity {
+  id         String   @id @default(cuid())
+  userId     String
+  ipAddress  String?
+  userAgent  String?
+  location   String?
+  successful Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 enum PickStatus {

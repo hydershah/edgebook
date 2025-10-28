@@ -1,9 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { TrendingUp, Sparkles } from 'lucide-react'
 import PickFeed from '@/components/PickFeed'
+
+interface TrendingSport {
+  sport: string
+  picks: number
+  trend: string
+  trendValue: number
+}
+
+interface TopCreator {
+  id: string
+  name: string
+  avatar?: string
+  winRate: number
+  followerCount: number
+  pickCount: number
+}
 
 export default function FeedPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'following'>('all')
@@ -13,6 +30,43 @@ export default function FeedPage() {
     units: 'all',
     premiumOnly: false,
   })
+  const [trendingSports, setTrendingSports] = useState<TrendingSport[]>([])
+  const [topCreators, setTopCreators] = useState<TopCreator[]>([])
+  const [loadingSports, setLoadingSports] = useState(true)
+  const [loadingCreators, setLoadingCreators] = useState(true)
+
+  useEffect(() => {
+    fetchTrendingSports()
+    fetchTopCreators()
+  }, [])
+
+  const fetchTrendingSports = async () => {
+    try {
+      const response = await fetch('/api/sports/trending')
+      if (response.ok) {
+        const data = await response.json()
+        setTrendingSports(data)
+      }
+    } catch (error) {
+      console.error('Error fetching trending sports:', error)
+    } finally {
+      setLoadingSports(false)
+    }
+  }
+
+  const fetchTopCreators = async () => {
+    try {
+      const response = await fetch('/api/users/top-creators')
+      if (response.ok) {
+        const data = await response.json()
+        setTopCreators(data)
+      }
+    } catch (error) {
+      console.error('Error fetching top creators:', error)
+    } finally {
+      setLoadingCreators(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -225,25 +279,45 @@ export default function FeedPage() {
                   <h3 className="font-bold text-gray-900">Trending</h3>
                 </div>
                 <div className="space-y-3">
-                  {[
-                    { sport: 'NBA', picks: 124, trend: '+12%' },
-                    { sport: 'NFL', picks: 98, trend: '+8%' },
-                    { sport: 'MLB', picks: 76, trend: '+15%' },
-                    { sport: 'Soccer', picks: 64, trend: '+5%' },
-                  ].map((item) => (
-                    <div
-                      key={item.sport}
-                      className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
-                    >
-                      <div>
-                        <p className="font-semibold text-gray-900">{item.sport}</p>
-                        <p className="text-xs text-gray-500">{item.picks} picks</p>
+                  {loadingSports ? (
+                    Array.from({ length: 4 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-lg animate-pulse"
+                      >
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-20"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded w-12"></div>
                       </div>
-                      <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
-                        {item.trend}
-                      </span>
-                    </div>
-                  ))}
+                    ))
+                  ) : trendingSports.length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No trending sports yet
+                    </p>
+                  ) : (
+                    trendingSports.map((item) => (
+                      <div
+                        key={item.sport}
+                        className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                      >
+                        <div>
+                          <p className="font-semibold text-gray-900">{item.sport}</p>
+                          <p className="text-xs text-gray-500">{item.picks} picks</p>
+                        </div>
+                        <span
+                          className={`text-xs font-semibold px-2 py-1 rounded ${
+                            item.trendValue >= 0
+                              ? 'text-green-600 bg-green-50'
+                              : 'text-red-600 bg-red-50'
+                          }`}
+                        >
+                          {item.trend}
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -251,22 +325,56 @@ export default function FeedPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                 <h3 className="font-bold text-gray-900 mb-4">Top Creators</h3>
                 <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">U{i}</span>
+                  {loadingCreators ? (
+                    Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="flex items-center space-x-3 animate-pulse">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-24"></div>
+                          <div className="h-3 bg-gray-200 rounded w-20"></div>
+                        </div>
+                        <div className="h-8 bg-gray-200 rounded w-16"></div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">
-                          Creator {i}
-                        </p>
-                        <p className="text-xs text-gray-500">78% Win Rate</p>
-                      </div>
-                      <button className="text-xs font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors">
-                        Follow
-                      </button>
-                    </div>
-                  ))}
+                    ))
+                  ) : topCreators.length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No creators yet
+                    </p>
+                  ) : (
+                    topCreators.map((creator) => (
+                      <Link
+                        key={creator.id}
+                        href={`/profile/${creator.id}`}
+                        className="flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                      >
+                        {creator.avatar ? (
+                          <Image
+                            src={creator.avatar}
+                            alt={creator.name}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              {creator.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm truncate">
+                            {creator.name}
+                          </p>
+                          <p className="text-xs text-gray-500">{creator.winRate}% Win Rate</p>
+                        </div>
+                        <button className="text-xs font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors">
+                          Follow
+                        </button>
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
