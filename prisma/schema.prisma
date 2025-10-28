@@ -44,7 +44,7 @@ model Chat {
   userId    String
   title     String    @default("Sports Betting Chat")
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime  @updatedAt
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
 
@@ -57,7 +57,7 @@ model Comment {
   pickId    String
   content   String
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   pick      Pick     @relation(fields: [pickId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -128,7 +128,7 @@ model Pick {
   isPremium  Boolean    @default(false)
   price      Float?
   createdAt  DateTime   @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime   @updatedAt
   viewCount  Int        @default(0)
   bookmarks  Bookmark[]
   comments   Comment[]
@@ -176,7 +176,7 @@ model Subscription {
   amount               Float
   currentPeriodEnd     DateTime
   createdAt            DateTime @default(now())
-  updatedAt            DateTime
+  updatedAt            DateTime @updatedAt
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([sellerId])
@@ -207,7 +207,7 @@ model User {
   isPremium                       Boolean         @default(false)
   stripeCustomerId                String?
   createdAt                       DateTime        @default(now())
-  updatedAt                       DateTime
+  updatedAt                       DateTime        @updatedAt
   instagram                       String?
   facebook                        String?
   youtube                         String?
