@@ -187,7 +187,7 @@ export default function PickFeed({ filters, followingOnly }: PickFeedProps) {
           <h3 className="text-xl font-bold text-gray-900 mb-2">No picks found</h3>
           <p className="text-gray-600 mb-6">
             {followingOnly
-              ? "You're not following anyone yet. Start following creators to see their picks here!"
+              ? "You&apos;re not following anyone yet. Start following creators to see their picks here!"
               : "Try adjusting your filters to see more picks"
             }
           </p>
@@ -223,7 +223,7 @@ export default function PickFeed({ filters, followingOnly }: PickFeedProps) {
 
         {!hasMore && picks.length > 0 && (
           <div className="text-center py-8">
-            <p className="text-gray-500 text-sm">You've reached the end of the feed</p>
+            <p className="text-gray-500 text-sm">You&apos;ve reached the end of the feed</p>
           </div>
         )}
       </div>
