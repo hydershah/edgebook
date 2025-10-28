@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // Optional for OAuth users
+  avatar        String?
+  bio           String?
+  isPremium     Boolean   @default(false)
+  stripeCustomerId String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  picks         Pick[]
+  followers     Follow[]  @relation("Following")
+  following     Follow[]  @relation("Followers")
+  purchases     Purchase[]
+  subscriptions Subscription[]
+  transactions  Transaction[]
+  chats         Chat[]
+  accounts      Account[]
+  sessions      Session[]
+  passwordResets PasswordReset[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+enum PickType {
+  SINGLE
+  PARLAY
+}
+
+enum Sport {
+  NFL
+  NBA
+  MLB
+  NHL
+  SOCCER
+  COLLEGE_FOOTBALL
+  COLLEGE_BASKETBALL
+}
+
+enum PickStatus {
+  PENDING
+  WON
+  LOST
+  PUSH
+}
+
+model Pick {
+  id            String     @id @default(cuid())
+  userId        String
+  pickType      PickType
+  sport         Sport
+  matchup       String
+  details       String
+  odds          String?
+  mediaUrl      String?
+  gameDate      DateTime
+  confidence    Int        @default(1) // 1-5 units
+  status        PickStatus @default(PENDING)
+  isPremium     Boolean    @default(false)
+  price         Float?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchases     Purchase[]
+
+  @@index([userId])
+  @@index([sport])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Purchase {
+  id              String   @id @default(cuid())
+  userId          String
+  pickId          String
+  amount          Float
+  platformFee     Float
+  stripePaymentId String
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pick            Pick     @relation(fields: [pickId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, pickId])
+}
+
+model Subscription {
+  id                String   @id @default(cuid())
+  userId            String
+  sellerId          String
+  stripeSubscriptionId String
+  status            String
+  amount            Float
+  currentPeriodEnd  DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sellerId])
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String   // PURCHASE, SUBSCRIPTION, PAYOUT
+  amount          Float
+  platformFee     Float?
+  status          String
+  stripePaymentId String?
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Chat {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String    @default("Sports Betting Chat")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@index([userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String
+  role      String   // user or assistant
+  content   String
+  createdAt DateTime @default(now())
+
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
