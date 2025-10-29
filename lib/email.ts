@@ -115,14 +115,14 @@ export async function sendWelcomeEmail(email: string, name: string) {
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
             <h2 style="color: #4A9B7F; margin-top: 0;">Hello ${name || 'there'}!</h2>
 
-            <p>Thank you for joining EdgeBook - your premier platform for sports betting insights and community.</p>
+            <p>Thank you for joining EdgeBook - your premier platform for sports predictions and community.</p>
 
             <p>Here's what you can do now:</p>
 
             <ul style="line-height: 2;">
-              <li>Follow expert bettors and get their premium picks</li>
+              <li>Follow expert analysts and get their premium picks</li>
               <li>Share your own picks and build your following</li>
-              <li>Get AI-powered betting advice from our advisor</li>
+              <li>Get AI-powered sports advice from our analyst</li>
               <li>Track your performance and improve your strategy</li>
             </ul>
 
@@ -151,12 +151,12 @@ Welcome to EdgeBook!
 
 Hello ${name || 'there'}!
 
-Thank you for joining EdgeBook - your premier platform for sports betting insights and community.
+Thank you for joining EdgeBook - your premier platform for sports predictions and community.
 
 Here's what you can do now:
-- Follow expert bettors and get their premium picks
+- Follow expert analysts and get their premium picks
 - Share your own picks and build your following
-- Get AI-powered betting advice from our advisor
+- Get AI-powered sports advice from our analyst
 - Track your performance and improve your strategy
 
 Visit ${process.env.NEXTAUTH_URL}/feed to get started!
@@ -173,6 +173,245 @@ This is an automated email from EdgeBook. Please do not reply to this message.
     return { success: true }
   } catch (error) {
     console.error('Error sending welcome email:', error)
+    return { success: false, error }
+  }
+}
+
+export async function sendVerificationEmail(email: string, token: string, name?: string) {
+  const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`
+
+  const mailOptions = {
+    from: `"EdgeBook" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Verify Your Email - EdgeBook',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verify Your Email</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #4A9B7F; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">EdgeBook</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #4A9B7F; margin-top: 0;">Verify Your Email Address</h2>
+
+            <p>Hello${name ? ` ${name}` : ''},</p>
+
+            <p>Thank you for signing up for EdgeBook! Please verify your email address by clicking the button below:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verifyUrl}"
+                 style="background-color: #4A9B7F; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Verify Email
+              </a>
+            </div>
+
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="background-color: #e9e9e9; padding: 10px; border-radius: 5px; word-break: break-all;">
+              ${verifyUrl}
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              <strong>This link will expire in 24 hours.</strong>
+            </p>
+
+            <p style="color: #666; font-size: 14px;">
+              If you didn't create an account with EdgeBook, you can safely ignore this email.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              This is an automated email from EdgeBook. Please do not reply to this message.
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+Verify Your Email Address
+
+Hello${name ? ` ${name}` : ''},
+
+Thank you for signing up for EdgeBook! Please verify your email address by clicking the link below:
+${verifyUrl}
+
+This link will expire in 24 hours.
+
+If you didn't create an account with EdgeBook, you can safely ignore this email.
+
+---
+This is an automated email from EdgeBook. Please do not reply to this message.
+    `,
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending verification email:', error)
+    return { success: false, error }
+  }
+}
+
+export async function sendEmailChangeNotification(oldEmail: string, newEmail: string, name?: string) {
+  const mailOptions = {
+    from: `"EdgeBook" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+    to: oldEmail,
+    subject: 'Email Address Changed - EdgeBook',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Email Address Changed</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #4A9B7F; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">EdgeBook</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #4A9B7F; margin-top: 0;">Email Address Changed</h2>
+
+            <p>Hello${name ? ` ${name}` : ''},</p>
+
+            <p>This is to notify you that the email address for your EdgeBook account has been changed.</p>
+
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Old email:</strong> ${oldEmail}</p>
+              <p style="margin: 10px 0 0 0;"><strong>New email:</strong> ${newEmail}</p>
+            </div>
+
+            <p style="color: #666; font-size: 14px;">
+              If you did not make this change, please contact our support team immediately at ${process.env.NEXTAUTH_URL}/support
+            </p>
+
+            <p style="color: #666; font-size: 14px;">
+              The new email address will need to be verified before it can be used for account recovery.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              This is an automated email from EdgeBook. Please do not reply to this message.
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+Email Address Changed
+
+Hello${name ? ` ${name}` : ''},
+
+This is to notify you that the email address for your EdgeBook account has been changed.
+
+Old email: ${oldEmail}
+New email: ${newEmail}
+
+If you did not make this change, please contact our support team immediately.
+
+The new email address will need to be verified before it can be used for account recovery.
+
+---
+This is an automated email from EdgeBook. Please do not reply to this message.
+    `,
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending email change notification:', error)
+    return { success: false, error }
+  }
+}
+
+export async function sendEmailChangeConfirmation(newEmail: string, token: string, name?: string) {
+  const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`
+
+  const mailOptions = {
+    from: `"EdgeBook" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+    to: newEmail,
+    subject: 'Confirm New Email Address - EdgeBook',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Confirm New Email Address</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #4A9B7F; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">EdgeBook</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #4A9B7F; margin-top: 0;">Confirm Your New Email Address</h2>
+
+            <p>Hello${name ? ` ${name}` : ''},</p>
+
+            <p>You recently changed the email address for your EdgeBook account. Please verify your new email address by clicking the button below:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verifyUrl}"
+                 style="background-color: #4A9B7F; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Verify New Email
+              </a>
+            </div>
+
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="background-color: #e9e9e9; padding: 10px; border-radius: 5px; word-break: break-all;">
+              ${verifyUrl}
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              <strong>This link will expire in 24 hours.</strong>
+            </p>
+
+            <p style="color: #666; font-size: 14px;">
+              If you didn't request this email change, please contact our support team immediately.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              This is an automated email from EdgeBook. Please do not reply to this message.
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+Confirm Your New Email Address
+
+Hello${name ? ` ${name}` : ''},
+
+You recently changed the email address for your EdgeBook account. Please verify your new email address by clicking the link below:
+${verifyUrl}
+
+This link will expire in 24 hours.
+
+If you didn't request this email change, please contact our support team immediately.
+
+---
+This is an automated email from EdgeBook. Please do not reply to this message.
+    `,
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending email change confirmation:', error)
     return { success: false, error }
   }
 }

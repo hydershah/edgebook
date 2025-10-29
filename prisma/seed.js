@@ -8,7 +8,7 @@ const users = [
     name: 'Arianna Shaw',
     email: 'arianna.shaw@example.com',
     password: 'Edgebook123!',
-    bio: 'Former collegiate point guard turned NBA betting analyst. Focused on pace, matchup data, and injury reports.',
+    bio: 'Former collegiate point guard turned NBA analyst. Focused on pace, matchup data, and injury reports.',
     instagram: 'ari_shaw_edge',
     youtube: 'https://youtube.com/@arishawedge',
     twitter: 'arishawedge',

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logUnauthorized, logForbidden, logSuccess, AuditAction, AuditResource } from '@/lib/audit'
+import { isAdmin } from '@/lib/authorization'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({
@@ -15,13 +17,52 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
+      await logUnauthorized(AuditResource.CHAT, params.chatId, undefined, request)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // SECURITY: Verify user owns the chat or is admin
+    const chat = await prisma.chat.findUnique({
+      where: { id: params.chatId },
+      select: { userId: true },
+    })
+
+    if (!chat) {
+      return NextResponse.json({ error: 'Chat not found' }, { status: 404 })
+    }
+
+    // Check if user owns the chat or is an admin
+    const userIsAdmin = await isAdmin(session.user.id)
+    const isOwner = chat.userId === session.user.id
+
+    if (!isOwner && !userIsAdmin) {
+      await logForbidden(
+        AuditAction.ACCESS_CHAT,
+        AuditResource.CHAT,
+        session.user.id,
+        params.chatId,
+        'User does not own this chat',
+        request
+      )
+      return NextResponse.json(
+        { error: 'You do not have permission to access this chat' },
+        { status: 403 }
+      )
     }
 
     const messages = await prisma.message.findMany({
       where: { chatId: params.chatId },
       orderBy: { createdAt: 'asc' },
     })
+
+    await logSuccess(
+      AuditAction.ACCESS_CHAT,
+      AuditResource.CHAT,
+      session.user.id,
+      params.chatId,
+      undefined,
+      request
+    )
 
     return NextResponse.json(messages)
   } catch (error) {
@@ -37,7 +78,37 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
+      await logUnauthorized(AuditResource.CHAT, params.chatId, undefined, request)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // SECURITY: Verify user owns the chat or is admin
+    const chat = await prisma.chat.findUnique({
+      where: { id: params.chatId },
+      select: { userId: true },
+    })
+
+    if (!chat) {
+      return NextResponse.json({ error: 'Chat not found' }, { status: 404 })
+    }
+
+    // Check if user owns the chat or is an admin
+    const userIsAdmin = await isAdmin(session.user.id)
+    const isOwner = chat.userId === session.user.id
+
+    if (!isOwner && !userIsAdmin) {
+      await logForbidden(
+        AuditAction.ACCESS_CHAT,
+        AuditResource.CHAT,
+        session.user.id,
+        params.chatId,
+        'User does not own this chat',
+        request
+      )
+      return NextResponse.json(
+        { error: 'You do not have permission to post to this chat' },
+        { status: 403 }
+      )
     }
 
     const { content } = await request.json()
@@ -64,7 +135,7 @@ export async function POST(
         {
           role: 'system',
           content:
-            'You are an AI sports betting advisor. Help users with betting strategies, analyze their performance, provide insights on games, and give data-driven advice. Be helpful, informative, and responsible. Always remind users to gamble responsibly.',
+            'You are an AI sports analyst. Help users with prediction strategies, analyze their performance, provide insights on games, and give data-driven advice. Be helpful, informative, and responsible. Always remind users to play responsibly.',
         },
         ...previousMessages.map((msg) => ({
           role: msg.role as 'user' | 'assistant',

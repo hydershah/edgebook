@@ -7,17 +7,17 @@ export default function Disclosures() {
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Important Disclosures</h2>
         <p className="text-gray-700 mb-4">
-          EdgeBook is a platform for sharing sports betting insights and picks. We do not provide gambling services directly.
+          EdgeBook is a platform for sharing sports predictions and picks. We provide informational content and analysis only.
         </p>
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">No Guarantee of Results</h2>
         <p className="text-gray-700 mb-4">
-          Past performance is not indicative of future results. All picks and betting advice shared on the platform are for informational purposes only.
+          Past performance is not indicative of future results. All picks and advice shared on the platform are for informational purposes only.
         </p>
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">User-Generated Content</h2>
         <p className="text-gray-700 mb-4">
-          All picks and betting insights are created by users. EdgeBook does not verify the accuracy of user-generated content and is not responsible for any losses incurred.
+          All picks and insights are created by users. EdgeBook does not verify the accuracy of user-generated content and is not responsible for any losses incurred.
         </p>
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Platform Fees</h2>
@@ -27,7 +27,7 @@ export default function Disclosures() {
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Legal Compliance</h2>
         <p className="text-gray-700 mb-4">
-          Users are responsible for ensuring that their use of EdgeBook complies with all applicable local, state, and federal laws regarding sports betting.
+          Users are responsible for ensuring that their use of EdgeBook complies with all applicable local, state, and federal laws.
         </p>
       </div>
     </div>

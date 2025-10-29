@@ -195,14 +195,14 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-11 lg:px-8 lg:py-24">
           <div className="lg:col-span-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              The social home for disciplined bettors
+              The social home for disciplined analysts
             </p>
             <h1 className="mt-6 text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
               Real records. Real community. Real edge.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
               EdgeBook lets you showcase every pick, surface your performance by sport, and sell premium insights to
-              bettors who care about credibility. Build a public track record, grow your audience, and manage earnings
+              the community who cares about credibility. Build a public track record, grow your audience, and manage earnings
               without the guesswork.
             </p>
             <ul className="mt-8 space-y-3 text-sm sm:text-base">
@@ -223,7 +223,7 @@ export default function Home() {
               <li className="flex items-start gap-3 text-gray-700">
                 <Users className="mt-0.5 h-5 w-5 text-primary" />
                 <span>
-                  Connect your socials, grow followers inside EdgeBook, and let serious bettors subscribe to your feed.
+                  Connect your socials, grow followers inside EdgeBook, and let serious analysts subscribe to your feed.
                 </span>
               </li>
             </ul>
@@ -390,7 +390,7 @@ export default function Home() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">Why bettors rely on EdgeBook</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-primary">Why analysts rely on EdgeBook</p>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Built around the way serious handicappers actually work
             </h2>
@@ -509,7 +509,7 @@ export default function Home() {
             <div className="lg:col-span-1">
               <p className="text-sm font-semibold uppercase tracking-wide text-primary">Proof in numbers</p>
               <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Data that keeps bettors confident
+                Data that keeps analysts confident
               </h2>
               <p className="mt-4 text-lg text-gray-600">
                 EdgeBook tracks the metrics that actually matter so creators can demonstrate their edge and buyers know
@@ -545,7 +545,7 @@ export default function Home() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Recognition</p>
                   <p className="mt-2 text-3xl font-bold text-gray-900">Leaderboards &amp; awards</p>
                   <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                    Seasonal leaderboards spotlight trending bettors by accuracy, volume, and earnings to boost organic
+                    Seasonal leaderboards spotlight trending analysts by accuracy, volume, and earnings to boost organic
                     discovery.
                   </p>
                 </div>
@@ -595,7 +595,7 @@ export default function Home() {
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-primary">Compliance &amp; trust</p>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Responsible betting infrastructure from day one
+              Responsible infrastructure from day one
             </h2>
             <p className="mt-4 text-lg text-gray-600">
               EdgeBook operates with licensing, age verification, and responsible gaming controls in mind so creators and
@@ -661,7 +661,7 @@ export default function Home() {
           <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl backdrop-blur">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to build your EdgeBook presence?</h2>
             <p className="mt-4 text-lg text-white/80">
-              Sign up today, import your past results, and start sharing predictions with the bettors who care about the
+              Sign up today, import your past results, and start sharing predictions with the community who cares about the
               numbers.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
@@ -683,7 +683,7 @@ export default function Home() {
             </p>
           </div>
           <p className="mt-10 text-center text-xs text-white/50">
-            Gambling problem? Call 1-800-522-4700. Must be 18+ (or 21+ where required). Please wager responsibly.
+            Need help? Call 1-800-522-4700. Must be 18+ (or 21+ where required). Please play responsibly.
           </p>
         </div>
       </section>

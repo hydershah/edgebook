@@ -76,10 +76,10 @@ export default function SignUp() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('Account created successfully! Redirecting to sign in...')
+        setSuccess('Account created successfully! Please check your email to verify your account before signing in.')
         setTimeout(() => {
-          router.push('/auth/signin?registered=true')
-        }, 2000)
+          router.push('/auth/signin?registered=true&verification=pending')
+        }, 3000)
       } else {
         setError(data.error || 'Failed to create account')
       }
@@ -115,7 +115,7 @@ export default function SignUp() {
             EdgeBook
           </div>
           <h1 className="mt-6 text-3xl font-semibold text-gray-900 sm:text-4xl">
-            Build your verified betting profile
+            Build your verified prediction profile
           </h1>
           <p className="mt-4 text-base text-gray-600 sm:text-lg">
             Showcase transparent records, monetize premium insights, and connect with a community that values disciplined handicappers.
@@ -140,7 +140,7 @@ export default function SignUp() {
               <Users className="mt-0.5 h-5 w-5 text-primary" />
               <div>
                 <p className="text-sm font-semibold text-gray-900">Community growth</p>
-                <p className="text-sm text-gray-600">Attract subscribers, sell premium cards, and collaborate with other bettors.</p>
+                <p className="text-sm text-gray-600">Attract subscribers, sell premium cards, and collaborate with other analysts.</p>
               </div>
             </div>
           </div>

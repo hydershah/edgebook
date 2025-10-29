@@ -8,6 +8,7 @@ import PickCard from '@/components/PickCard'
 import type { ReactNode } from 'react'
 import {
   Activity,
+  Bookmark,
   Calendar,
   Circle,
   Facebook,
@@ -148,20 +149,26 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 )
               )}
               <div className="flex items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
+                <Link
+                  href={`/profile/${profile.user.id}/followers`}
+                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                >
                   <Users size={16} className="text-primary" />
                   <span className="font-semibold text-gray-900">
                     {profile.followers.toLocaleString()}
                   </span>
                   <span>Followers</span>
-                </div>
+                </Link>
                 <span className="h-3 w-px bg-gray-300" />
-                <div>
+                <Link
+                  href={`/profile/${profile.user.id}/following`}
+                  className="hover:text-primary transition-colors"
+                >
                   <span className="font-semibold text-gray-900">
                     {profile.following.toLocaleString()}
                   </span>{' '}
                   Following
-                </div>
+                </Link>
                 {profile.stats.totalPicks > 0 && (
                   <>
                     <span className="h-3 w-px bg-gray-300" />
@@ -183,7 +190,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   Edit Profile
                 </Link>
                 <p className="text-sm text-gray-500 sm:max-w-xs">
-                  This is what other bettors see when they visit your profile.
+                  This is what other users see when they visit your profile.
                 </p>
               </div>
             ) : viewerId ? (
@@ -390,6 +397,47 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </div>
         )}
       </div>
+
+      {/* Saved Picks - Only visible for own profile */}
+      {isOwnProfile && (
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Bookmark className="text-primary" size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Saved Picks</h2>
+                <p className="text-sm text-gray-500">
+                  Picks you&apos;ve bookmarked for later
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/bookmarks"
+              className="btn-secondary text-sm"
+            >
+              View All
+            </Link>
+          </div>
+          <div className="bg-gradient-to-br from-primary/5 to-emerald-50 rounded-xl p-6 text-center">
+            <Bookmark className="w-12 h-12 text-primary/40 mx-auto mb-3" />
+            <p className="text-gray-700 font-medium mb-2">
+              Quick Access to Your Saved Picks
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              Bookmark picks from the feed to save them for later review and analysis
+            </p>
+            <Link
+              href="/bookmarks"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
+            >
+              <Bookmark size={18} />
+              Go to Bookmarks
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Recent picks */}
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">

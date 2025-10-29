@@ -37,12 +37,13 @@ model Bookmark {
   @@unique([userId, pickId])
   @@index([pickId])
   @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model Chat {
   id        String    @id @default(cuid())
   userId    String
-  title     String    @default("Sports Betting Chat")
+  title     String    @default("Sports Predictions Chat")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -63,6 +64,7 @@ model Comment {
 
   @@index([pickId])
   @@index([userId])
+  @@index([pickId, createdAt])
 }
 
 model Follow {
@@ -74,6 +76,8 @@ model Follow {
   followedBy  User     @relation("Follow_followingIdToUser", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Like {
@@ -88,6 +92,7 @@ model Like {
   @@unique([userId, pickId])
   @@index([pickId])
   @@index([userId])
+  @@index([pickId, createdAt])
 }
 
 model Message {
@@ -99,6 +104,7 @@ model Message {
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
+  @@index([chatId, createdAt])
 }
 
 model PasswordReset {
@@ -114,6 +120,21 @@ model PasswordReset {
   @@index([userId])
 }
 
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  email     String   // The email being verified
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([email])
+}
+
 model Pick {
   id         String     @id @default(cuid())
   userId     String
@@ -124,6 +145,7 @@ model Pick {
   odds       String?
   mediaUrl   String?
   gameDate   DateTime
+  lockedAt   DateTime?
   confidence Int        @default(1)
   status     PickStatus @default(PENDING)
   isPremium  Boolean    @default(false)
@@ -142,6 +164,13 @@ model Pick {
   @@index([sport])
   @@index([status])
   @@index([userId])
+  @@index([gameDate])
+  @@index([isPremium])
+  @@index([lockedAt])
+  @@index([sport, status])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([sport, createdAt])
 }
 
 model Purchase {
@@ -156,6 +185,9 @@ model Purchase {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, pickId])
+  @@index([userId])
+  @@index([pickId])
+  @@index([createdAt])
 }
 
 model Session {
@@ -196,57 +228,78 @@ model Transaction {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, createdAt])
+  @@index([status])
 }
 
 model User {
-  id                              String            @id @default(cuid())
-  email                           String            @unique
-  username                        String?           @unique
-  name                            String?
-  password                        String?
-  avatar                          String?
-  coverPhoto                      String?
-  bio                             String?
-  phone                           String?
-  birthday                        DateTime?
-  gender                          String?
-  location                        String?
-  isPremium                       Boolean           @default(false)
-  isVerified                      Boolean           @default(false)
-  stripeCustomerId                String?
-  stripeAccountId                 String?
-  subscriptionPrice               Float?
-  createdAt                       DateTime          @default(now())
-  updatedAt                       DateTime          @updatedAt
-  instagram                       String?
-  facebook                        String?
-  youtube                         String?
-  twitter                         String?
-  tiktok                          String?
-  website                         String?
-  emailVerified                   DateTime?
-  twoFactorEnabled                Boolean           @default(false)
-  twoFactorSecret                 String?
-  theme                           String            @default("light")
-  notificationPreferences         Json?
-  privacySettings                 Json?
-  accounts                        Account[]
-  bookmarks                       Bookmark[]
-  chats                           Chat[]
-  comments                        Comment[]
-  followers                       Follow[]          @relation("Follow_followerIdToUser")
-  following                       Follow[]          @relation("Follow_followingIdToUser")
-  likes                           Like[]
-  passwordResets                  PasswordReset[]
-  picks                           Pick[]
-  purchases                       Purchase[]
-  sessions                        Session[]
-  subscriptions                   Subscription[]
-  transactions                    Transaction[]
-  views                           View[]
-  loginActivities                 LoginActivity[]
+  id                      String           @id @default(cuid())
+  email                   String           @unique
+  username                String?          @unique
+  name                    String?
+  password                String?
+  avatar                  String?
+  coverPhoto              String?
+  bio                     String?
+  phone                   String?
+  birthday                DateTime?
+  gender                  String?
+  location                String?
+  isPremium               Boolean          @default(false)
+  isVerified              Boolean          @default(false)
+  role                    UserRole         @default(USER)
+  stripeCustomerId        String?
+  stripeAccountId         String?
+  subscriptionPrice       Float?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  instagram               String?
+  facebook                String?
+  youtube                 String?
+  twitter                 String?
+  tiktok                  String?
+  website                 String?
+  emailVerified           DateTime?
+  twoFactorEnabled        Boolean          @default(false)
+  twoFactorSecret         String?
+  theme                   String           @default("light")
+  notificationPreferences Json?
+  privacySettings         Json?
+  accounts                Account[]
+  bookmarks               Bookmark[]
+  chats                   Chat[]
+  comments                Comment[]
+  followers               Follow[]         @relation("Follow_followerIdToUser")
+  following               Follow[]         @relation("Follow_followingIdToUser")
+  likes                   Like[]
+  loginActivities         LoginActivity[]
+  passwordResets          PasswordReset[]
+  picks                   Pick[]
+  purchases               Purchase[]
+  sessions                Session[]
+  subscriptions           Subscription[]
+  transactions            Transaction[]
+  views                   View[]
+  usernameChanges         UsernameChange[]
+  auditLogs               AuditLog[]
+  emailVerifications      EmailVerification[]
 
   @@index([username])
+  @@index([role])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model UsernameChange {
+  id           String   @id @default(cuid())
+  userId       String
+  oldUsername  String?
+  newUsername  String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model View {
@@ -260,6 +313,7 @@ model View {
 
   @@index([pickId])
   @@index([userId])
+  @@index([pickId, createdAt])
 }
 
 model LoginActivity {
@@ -301,4 +355,29 @@ enum Sport {
 enum VoteType {
   UPVOTE
   DOWNVOTE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  ipAddress   String?
+  userAgent   String?
+  details     Json?
+  success     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+  @@index([success])
 }

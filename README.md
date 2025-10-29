@@ -1,18 +1,18 @@
-# EdgeBook.ai - Sports Betting Social Platform
+# EdgeBook.ai - Sports Predictions Social Platform
 
-EdgeBook is an innovative sports betting community platform that combines social media features with a marketplace for betting picks. Users can share their picks, follow top performers, purchase premium picks, and get AI-powered betting insights.
+EdgeBook is an innovative sports community platform that combines social media features with a marketplace for sports picks. Users can share their picks, follow top performers, purchase premium picks, and get AI-powered sports insights.
 
 ## Features
 
 - **Social Feed**: View and filter picks from the community
-- **Create Picks**: Share betting insights with customizable options (sport, confidence, premium/free)
-- **Trending Bettors**: Discover top performers with proven track records
-- **AI Sports Advisor**: Get personalized betting insights with OpenAI-powered chat
+- **Create Picks**: Share sports insights with customizable options (sport, confidence, premium/free)
+- **Trending Analysts**: Discover top performers with proven track records
+- **AI Sports Analyst**: Get personalized sports insights with OpenAI-powered chat
 - **Premium Picks**: Monetize your picks with a 15% platform fee
-- **Follow System**: Follow your favorite bettors
+- **Follow System**: Follow your favorite analysts
 - **Payment Integration**: Secure payments via Stripe
 - **File Uploads**: Add photos/videos to your picks (AWS S3)
-- **Responsible Gaming**: Built-in responsible gaming features and resources
+- **Responsible Use**: Built-in responsible use features and resources
 
 ## Tech Stack
 
@@ -188,13 +188,13 @@ edgebook/
 │   ├── api/              # API routes
 │   │   ├── auth/         # Authentication
 │   │   ├── picks/        # Pick CRUD operations
-│   │   ├── chats/        # AI advisor chat
+│   │   ├── chats/        # AI analyst chat
 │   │   ├── payments/     # Stripe integration
 │   │   └── upload/       # File uploads
 │   ├── feed/             # Main feed page
 │   ├── createpick/       # Create pick page
-│   ├── trending/         # Trending bettors page
-│   ├── aiadvisor/        # AI advisor page
+│   ├── trending/         # Trending analysts page
+│   ├── aianalyst/        # AI analyst page
 │   ├── legal/            # Legal pages
 │   ├── layout.tsx        # Root layout
 │   └── globals.css       # Global styles
@@ -224,10 +224,10 @@ edgebook/
 - Purchase tracking
 - Transaction history
 
-### AI Advisor
+### AI Analyst
 - OpenAI GPT-4 integration
 - Chat history persistence
-- Personalized betting insights
+- Personalized sports insights
 
 ### File Uploads
 - AWS S3 integration
@@ -276,11 +276,11 @@ This project is licensed under the MIT License.
 
 For support, email support@edgebook.ai or join our Discord community.
 
-## Responsible Gaming
+## Responsible Use
 
-EdgeBook promotes responsible gaming. If you have a gambling problem, please call 1-800-522-4700.
+EdgeBook promotes responsible use. If you need help, please call 1-800-522-4700.
 
-You must be 18+ to use this platform. Please gamble responsibly.
+You must be 18+ to use this platform. Please play responsibly.
 
 ---
 

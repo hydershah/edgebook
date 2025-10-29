@@ -3,6 +3,60 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { Filter } from 'bad-words'
+
+// Reserved usernames that cannot be used
+const RESERVED_USERNAMES = [
+  'admin',
+  'administrator',
+  'support',
+  'edgebook',
+  'api',
+  'help',
+  'system',
+  'root',
+  'moderator',
+  'mod',
+  'staff',
+  'official',
+  'team',
+  'info',
+  'contact',
+  'sales',
+  'billing',
+  'legal',
+  'privacy',
+  'terms',
+  'about',
+  'null',
+  'undefined',
+  'test',
+  'demo',
+  'sample',
+]
+
+// Initialize profanity filter
+const profanityFilter = new Filter()
+
+// Custom validator for username format
+const validateUsernameFormat = (username: string): string | null => {
+  // Prevent consecutive underscores or starting/ending with underscore
+  if (!/^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)*$/.test(username)) {
+    return 'Username cannot have consecutive underscores or start/end with underscores'
+  }
+  return null
+}
+
+// Check if username is reserved
+const isReservedUsername = (username: string): boolean => {
+  const normalizedUsername = username.toLowerCase()
+  return RESERVED_USERNAMES.includes(normalizedUsername)
+}
+
+// Check if username contains profanity
+const containsProfanity = (username: string): boolean => {
+  return profanityFilter.isProfane(username)
+}
 
 const usernameSchema = z.object({
   username: z
@@ -10,7 +64,7 @@ const usernameSchema = z.object({
     .min(3, 'Username must be at least 3 characters')
     .max(30, 'Username must be less than 30 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
-    .toLowerCase(),
+    .transform((val) => val.toLowerCase()),
 })
 
 // Check username availability
@@ -31,8 +85,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const normalizedUsername = validation.data.username
+
+    // Check format (consecutive underscores, etc.)
+    const formatError = validateUsernameFormat(normalizedUsername)
+    if (formatError) {
+      return NextResponse.json({ available: false, error: formatError }, { status: 400 })
+    }
+
+    // Check if reserved
+    if (isReservedUsername(normalizedUsername)) {
+      return NextResponse.json(
+        { available: false, error: 'This username is reserved' },
+        { status: 400 }
+      )
+    }
+
+    // Check for profanity
+    if (containsProfanity(normalizedUsername)) {
+      return NextResponse.json(
+        { available: false, error: 'Username contains inappropriate content' },
+        { status: 400 }
+      )
+    }
+
+    // Check if username is already taken
     const existingUser = await prisma.user.findUnique({
-      where: { username: validation.data.username },
+      where: { username: normalizedUsername },
       select: { id: true },
     })
 
@@ -61,11 +140,58 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const { username } = validation.data
+    const normalizedUsername = validation.data.username
+
+    // Check format (consecutive underscores, etc.)
+    const formatError = validateUsernameFormat(normalizedUsername)
+    if (formatError) {
+      return NextResponse.json({ error: { message: formatError } }, { status: 400 })
+    }
+
+    // Check if reserved
+    if (isReservedUsername(normalizedUsername)) {
+      return NextResponse.json(
+        { error: { message: 'This username is reserved' } },
+        { status: 400 }
+      )
+    }
+
+    // Check for profanity
+    if (containsProfanity(normalizedUsername)) {
+      return NextResponse.json(
+        { error: { message: 'Username contains inappropriate content' } },
+        { status: 400 }
+      )
+    }
+
+    // Check rate limiting: max 3 username changes per month
+    const oneMonthAgo = new Date()
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+
+    const recentChanges = await prisma.usernameChange.count({
+      where: {
+        userId: session.user.id,
+        createdAt: {
+          gte: oneMonthAgo,
+        },
+      },
+    })
+
+    if (recentChanges >= 3) {
+      return NextResponse.json(
+        {
+          error: {
+            message:
+              'You have reached the maximum number of username changes (3 per month). Please try again later.',
+          },
+        },
+        { status: 429 }
+      )
+    }
 
     // Check if username is already taken
     const existingUser = await prisma.user.findUnique({
-      where: { username },
+      where: { username: normalizedUsername },
       select: { id: true },
     })
 
@@ -76,14 +202,29 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Update username
-    const updatedUser = await prisma.user.update({
+    // Get current user to track old username
+    const currentUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      data: { username },
       select: { username: true },
     })
 
-    return NextResponse.json(updatedUser)
+    // Update username and create change record in a transaction
+    const result = await prisma.$transaction([
+      prisma.user.update({
+        where: { id: session.user.id },
+        data: { username: normalizedUsername },
+        select: { username: true },
+      }),
+      prisma.usernameChange.create({
+        data: {
+          userId: session.user.id,
+          oldUsername: currentUser?.username,
+          newUsername: normalizedUsername,
+        },
+      }),
+    ])
+
+    return NextResponse.json(result[0])
   } catch (error) {
     console.error('Username update error:', error)
     return NextResponse.json({ error: { message: 'Failed to update username' } }, { status: 500 })

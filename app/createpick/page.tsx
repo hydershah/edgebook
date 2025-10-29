@@ -10,30 +10,83 @@ import { z } from 'zod'
 
 const pickSchema = z
   .object({
-    pickType: z.enum(['SINGLE', 'PARLAY'], { required_error: 'Pick type is required' }),
+    pickType: z.enum(['SINGLE', 'PARLAY'], {
+      required_error: 'Pick type is required',
+      invalid_type_error: 'Invalid pick type',
+    }),
     sport: z.enum(
       ['NFL', 'NBA', 'MLB', 'NHL', 'SOCCER', 'COLLEGE_FOOTBALL', 'COLLEGE_BASKETBALL'],
-      { required_error: 'Sport is required' }
+      {
+        required_error: 'Sport is required',
+        invalid_type_error: 'Invalid sport',
+      }
     ),
-    matchup: z.string().trim().min(1, 'Matchup is required'),
+    matchup: z
+      .string()
+      .trim()
+      .min(1, 'Matchup is required')
+      .max(200, 'Matchup must be less than 200 characters')
+      .regex(
+        /^[a-zA-Z0-9\s@\-.,()&]+$/,
+        'Matchup can only contain letters, numbers, spaces, and common punctuation (@-.,()&)'
+      ),
     details: z
       .string()
       .trim()
-      .min(1, 'Pick details are required')
-      .max(1000, 'Pick details must be under 1000 characters'),
+      .min(10, 'Pick details must be at least 10 characters')
+      .max(1000, 'Pick details must be less than 1000 characters')
+      .refine((val) => val.split(/\s+/).length >= 3, {
+        message: 'Pick details must contain at least 3 words',
+      }),
     odds: z
       .string()
+      .trim()
       .optional()
-      .transform((value) => (value && value.trim().length > 0 ? value.trim() : undefined)),
-    gameDate: z.string().min(1, 'Game date is required'),
-    confidence: z.coerce.number().min(1, 'Confidence must be at least 1').max(5, 'Confidence cannot exceed 5'),
-    isPremium: z.boolean(),
+      .transform((value) => {
+        // Handle empty strings and whitespace-only strings
+        if (!value || value.length === 0) return undefined
+        return value
+      })
+      .refine(
+        (val) => {
+          if (!val) return true
+          // Valid odds formats: -110, +150, 2.5, 1.91, etc.
+          return /^[+-]?\d+(\.\d{1,2})?$/.test(val)
+        },
+        { message: 'Odds must be in valid format (e.g., -110, +150, 2.5)' }
+      ),
+    gameDate: z
+      .string()
+      .min(1, 'Game date is required')
+      .refine((val) => !isNaN(Date.parse(val)), {
+        message: 'Invalid date format',
+      })
+      .refine((val) => new Date(val) > new Date(), {
+        message: 'Game date must be in the future',
+      }),
+    confidence: z
+      .number({
+        required_error: 'Confidence level is required',
+        invalid_type_error: 'Confidence must be a number',
+      })
+      .int('Confidence must be a whole number')
+      .min(1, 'Confidence must be at least 1')
+      .max(5, 'Confidence cannot exceed 5'),
+    isPremium: z.boolean({
+      invalid_type_error: 'Premium status must be true or false',
+    }),
     price: z
       .string()
+      .trim()
       .optional()
-      .transform((value) => value?.trim()),
+      .transform((val) => {
+        // Handle empty strings and whitespace-only strings
+        if (!val || val.length === 0) return undefined
+        return val
+      }),
   })
   .superRefine((data, ctx) => {
+    // Validate that premium picks have a valid price
     if (data.isPremium) {
       if (!data.price || data.price.length === 0) {
         ctx.addIssue({
@@ -45,11 +98,39 @@ const pickSchema = z
       }
 
       const parsed = Number.parseFloat(data.price)
-      if (Number.isNaN(parsed) || parsed <= 0) {
+      if (Number.isNaN(parsed)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['price'],
-          message: 'Enter a valid price greater than 0',
+          message: 'Price must be a valid number',
+        })
+        return
+      }
+
+      if (parsed < 0.5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['price'],
+          message: 'Minimum price is $0.50',
+        })
+        return
+      }
+
+      if (parsed > 10000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['price'],
+          message: 'Maximum price is $10,000',
+        })
+        return
+      }
+
+      // Check for max 2 decimal places
+      if (!/^\d+(\.\d{1,2})?$/.test(data.price)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['price'],
+          message: 'Price can only have up to 2 decimal places',
         })
       }
     }
@@ -114,20 +195,23 @@ export default function CreatePickPage() {
     setFormError(null)
 
     try {
+      // Prepare data with proper type handling
+      const payload = {
+        pickType: values.pickType,
+        sport: values.sport,
+        matchup: values.matchup.trim(),
+        details: values.details.trim(),
+        odds: values.odds || undefined,
+        gameDate: values.gameDate,
+        confidence: values.confidence,
+        isPremium: values.isPremium,
+        price: values.isPremium && values.price ? Number.parseFloat(values.price) : undefined,
+      }
+
       const response = await fetch('/api/picks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pickType: values.pickType,
-          sport: values.sport,
-          matchup: values.matchup,
-          details: values.details,
-          odds: values.odds,
-          gameDate: values.gameDate,
-          confidence: values.confidence,
-          isPremium: values.isPremium,
-          price: values.isPremium ? Number(values.price) : undefined,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -465,9 +549,8 @@ export default function CreatePickPage() {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
                       <input
                         id="price"
-                        type="number"
-                        min={1}
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="9.99"
                         className={`w-full pl-8 pr-4 py-2.5 border ${
                           errors.price ? 'border-red-400' : 'border-gray-300'
@@ -476,6 +559,12 @@ export default function CreatePickPage() {
                         aria-invalid={errors.price ? 'true' : 'false'}
                         aria-describedby={errors.price ? 'price-error' : undefined}
                         disabled={isSubmitting}
+                        onKeyPress={(e) => {
+                          // Only allow numbers, decimal point, and control keys
+                          if (!/[\d.]/.test(e.key) && !['Backspace', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                            e.preventDefault()
+                          }
+                        }}
                       />
                     </div>
                     {errors.price && (

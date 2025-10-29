@@ -71,7 +71,7 @@ export default function ComplianceConsent() {
                 Stay compliant with EdgeBook
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                EdgeBook is designed for responsible betting communities. Please confirm you meet the legal requirements
+                EdgeBook is designed for responsible sports communities. Please confirm you meet the legal requirements
                 and agree to our data practices before continuing.
               </p>
             </div>
@@ -95,8 +95,8 @@ export default function ComplianceConsent() {
                   I confirm I am 18 years of age or older.
                 </div>
                 <p className="mt-1 text-sm text-gray-600">
-                  Access to wagering insights is restricted to individuals who are legally permitted to view sports
-                  betting content in their jurisdiction.
+                  Access to sports insights is restricted to individuals who are legally permitted to view sports
+                  prediction content in their jurisdiction.
                 </p>
               </div>
             </label>

@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --primary-color: #4a9b7f;
+    --primary-color: #206344;
   }
 
   body {
@@ -147,10 +147,10 @@
 
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 20px rgba(74, 155, 127, 0.4);
+      box-shadow: 0 0 20px rgba(32, 99, 68, 0.4);
     }
     50% {
-      box-shadow: 0 0 40px rgba(74, 155, 127, 0.6);
+      box-shadow: 0 0 40px rgba(32, 99, 68, 0.6);
     }
   }
 

@@ -22,7 +22,7 @@ export default function TermsOfService() {
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">4. Content</h2>
         <p className="text-gray-700 mb-4">
-          Users are solely responsible for the content they post. EdgeBook does not endorse any user content and is not responsible for the accuracy of picks or betting advice shared on the platform.
+          Users are solely responsible for the content they post. EdgeBook does not endorse any user content and is not responsible for the accuracy of picks or advice shared on the platform.
         </p>
 
         <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">5. Platform Fees</h2>
@@ -30,9 +30,9 @@ export default function TermsOfService() {
           EdgeBook charges a 15% platform fee on all premium pick sales. This fee is deducted from the purchase price before payment to the seller.
         </p>
 
-        <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">6. Responsible Gaming</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">6. Responsible Use</h2>
         <p className="text-gray-700 mb-4">
-          EdgeBook promotes responsible gaming. If you have a gambling problem, please seek help immediately by calling 1-800-522-4700.
+          EdgeBook promotes responsible use of our platform. If you need help, please call the National Problem Helpline at 1-800-522-4700.
         </p>
       </div>
     </div>

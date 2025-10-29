@@ -32,6 +32,13 @@ export async function POST(
       return NextResponse.json({ error: 'Pick has no price set' }, { status: 400 })
     }
 
+    // Anti-self-purchase: Prevent creators from buying their own picks
+    if (pick.userId === session.user.id) {
+      return NextResponse.json({
+        error: 'You cannot purchase your own premium pick'
+      }, { status: 403 })
+    }
+
     // Check if already purchased
     const existingPurchase = await prisma.purchase.findUnique({
       where: {

@@ -75,22 +75,22 @@ export default function FeedPage() {
           {/* Left Sidebar - Hidden on mobile */}
           <aside className="hidden lg:block lg:col-span-3">
             <div className="sticky top-6 space-y-6">
-              {/* AI Sports Advisor Card */}
+              {/* AI Sports Analyst Card */}
               <div className="bg-gradient-to-br from-primary to-primary-dark rounded-2xl p-6 text-white shadow-lg">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                     <Sparkles className="text-white" size={24} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">AI Advisor</h3>
+                    <h3 className="font-bold text-lg">AI Analyst</h3>
                     <p className="text-xs text-white/80">Smart Insights</p>
                   </div>
                 </div>
                 <p className="text-sm text-white/90 mb-4 leading-relaxed">
-                  Get personalized predictions and improve your betting edge with AI
+                  Get personalized predictions and improve your edge with AI
                 </p>
                 <Link
-                  href="/aiadvisor"
+                  href="/aianalyst"
                   className="block w-full bg-white text-primary font-semibold px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-center text-sm"
                 >
                   Try Now
@@ -128,12 +128,12 @@ export default function FeedPage() {
                     <Sparkles className="text-white" size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm">AI Sports Advisor</h3>
+                    <h3 className="font-bold text-sm">AI Sports Analyst</h3>
                     <p className="text-xs text-white/80">Get smart insights</p>
                   </div>
                 </div>
                 <Link
-                  href="/aiadvisor"
+                  href="/aianalyst"
                   className="bg-white text-primary font-semibold px-4 py-2 rounded-lg text-sm hover:bg-gray-100 transition-colors"
                 >
                   Try

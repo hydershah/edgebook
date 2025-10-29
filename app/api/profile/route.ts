@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isAdmin } from '@/lib/authorization'
+import { logUnauthorized, logForbidden, logSuccess, AuditAction, AuditResource } from '@/lib/audit'
 
 const socialFieldSchema = z
   .string()
@@ -108,11 +110,45 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
+      await logUnauthorized(AuditResource.PROFILE, undefined, undefined, request)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const json = await request.json()
     const parsed = updateProfileSchema.parse(json)
+
+    // Support admin updating other users' profiles via userId query param
+    const { searchParams } = new URL(request.url)
+    const targetUserId = searchParams.get('userId') || session.user.id
+
+    // SECURITY: Verify permission to update profile
+    const isSelf = targetUserId === session.user.id
+    const userIsAdmin = await isAdmin(session.user.id)
+
+    if (!isSelf && !userIsAdmin) {
+      await logForbidden(
+        AuditAction.UPDATE_OTHER_PROFILE,
+        AuditResource.PROFILE,
+        session.user.id,
+        targetUserId,
+        'Only admins can update other users\' profiles',
+        request
+      )
+      return NextResponse.json(
+        { error: 'You do not have permission to update this profile' },
+        { status: 403 }
+      )
+    }
+
+    // Verify target user exists
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true },
+    })
+
+    if (!targetUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
 
     const updateData: Record<string, any> = {}
 
@@ -134,7 +170,7 @@ export async function PATCH(request: NextRequest) {
     if (parsed.privacySettings !== undefined) updateData.privacySettings = parsed.privacySettings
 
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: targetUserId },
       data: updateData,
       select: {
         id: true,
@@ -157,6 +193,15 @@ export async function PATCH(request: NextRequest) {
         updatedAt: true,
       },
     })
+
+    await logSuccess(
+      isSelf ? AuditAction.UPDATE_PROFILE : AuditAction.UPDATE_OTHER_PROFILE,
+      AuditResource.PROFILE,
+      session.user.id,
+      targetUserId,
+      { isAdminAction: !isSelf },
+      request
+    )
 
     return NextResponse.json({ user: updatedUser })
   } catch (error) {

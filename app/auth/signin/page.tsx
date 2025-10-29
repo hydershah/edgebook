@@ -121,7 +121,7 @@ function SignInContent() {
             Sign in and pick up where you left off
           </h1>
           <p className="mt-4 text-base text-gray-600 sm:text-lg">
-            Access your performance dashboard, manage premium picks, and stay connected with the bettors who follow your edge.
+            Access your performance dashboard, manage premium picks, and stay connected with the community who follows your edge.
           </p>
 
           <div className="mt-8 space-y-4">
@@ -143,7 +143,7 @@ function SignInContent() {
               <Users className="mt-0.5 h-5 w-5 text-primary" />
               <div>
                 <p className="text-sm font-semibold text-gray-900">Engaged community</p>
-                <p className="text-sm text-gray-600">Grow your followers and share insights with serious bettors.</p>
+                <p className="text-sm text-gray-600">Grow your followers and share insights with serious analysts.</p>
               </div>
             </div>
           </div>

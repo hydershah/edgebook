@@ -165,6 +165,7 @@ export async function getUserProfile(userId: string, viewerId?: string) {
       ...pick,
       createdAt: pick.createdAt.toISOString(),
       gameDate: pick.gameDate.toISOString(),
+      lockedAt: pick.lockedAt?.toISOString() ?? null,
     })),
     transactions: recentTransactions.map((txn) => ({
       ...txn,

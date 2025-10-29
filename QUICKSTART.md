@@ -7,7 +7,7 @@ Get EdgeBook up and running in 5 minutes!
 - Node.js 18+ installed
 - PostgreSQL installed and running
 - Stripe account (for payments)
-- OpenAI API key (for AI advisor)
+- OpenAI API key (for AI analyst)
 - AWS account (for file uploads)
 
 ## Quick Setup
@@ -80,9 +80,9 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 ### Explore the Features
 
 1. **Feed** - View all picks (empty at first)
-2. **Create Pick** - Share your first betting pick
+2. **Create Pick** - Share your first pick
 3. **Trending** - See top performers (needs 5+ picks per user)
-4. **AI Advisor** - Chat with AI about betting strategies
+4. **AI Analyst** - Chat with AI about prediction strategies
 
 ## Common Issues
 

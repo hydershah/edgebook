@@ -2,10 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Lock, TrendingUp, ThumbsUp, ThumbsDown, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal, CheckCircle } from 'lucide-react'
+import { Lock, TrendingUp, ThumbsUp, ThumbsDown, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal, CheckCircle, Send, Trash2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useSession } from 'next-auth/react'
 import Modal from './Modal'
+
+interface Comment {
+  id: string
+  content: string
+  createdAt: string
+  user: {
+    id: string
+    username: string | null
+    name: string | null
+    avatar: string | null
+    isVerified: boolean
+  }
+}
 
 interface PickStats {
   upvotes: number
@@ -38,6 +51,9 @@ interface PickCardProps {
     price?: number | null
     createdAt: string
     gameDate: string
+    lockedAt?: string | null
+    isLocked?: boolean
+    isPremiumLocked?: boolean
   }
   stats?: PickStats
   onStatsUpdate?: () => void
@@ -48,6 +64,12 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
   const [userVoteType, setUserVoteType] = useState<'UPVOTE' | 'DOWNVOTE' | null>(stats?.userVoteType || null)
   const [isSaved, setIsSaved] = useState(stats?.isBookmarked || false)
   const [isUnlocking, setIsUnlocking] = useState(false)
+  const [timeUntilLock, setTimeUntilLock] = useState<string>('')
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentText, setCommentText] = useState('')
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
 
   // Modal state
   const [modal, setModal] = useState<{
@@ -82,13 +104,53 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     trackView()
   }, [pick.id])
 
+  // Countdown timer for lock time
+  useEffect(() => {
+    if (!pick.lockedAt || pick.isLocked) {
+      setTimeUntilLock('')
+      return
+    }
+
+    const updateCountdown = () => {
+      const lockTime = new Date(pick.lockedAt!)
+      const now = new Date()
+      const diff = lockTime.getTime() - now.getTime()
+
+      if (diff <= 0) {
+        setTimeUntilLock('Locked')
+        return
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      if (days > 0) {
+        setTimeUntilLock(`Locks in ${days}d ${hours}h`)
+      } else if (hours > 0) {
+        setTimeUntilLock(`Locks in ${hours}h ${minutes}m`)
+      } else if (minutes > 0) {
+        setTimeUntilLock(`Locks in ${minutes}m ${seconds}s`)
+      } else {
+        setTimeUntilLock(`Locks in ${seconds}s`)
+      }
+    }
+
+    updateCountdown()
+    const interval = setInterval(updateCountdown, 1000)
+
+    return () => clearInterval(interval)
+  }, [pick.lockedAt, pick.isLocked])
+
   const upvotes = stats?.upvotes || 0
   const downvotes = stats?.downvotes || 0
   const score = stats?.score || 0
-  const comments = stats?.comments || 0
+  const commentCount = stats?.comments || 0
   const views = stats?.views || 0
   const unlocks = stats?.unlocks || 0
   const isUnlocked = stats?.isUnlocked || false
+  const isOwnPick = session?.user?.id === pick.user.id
 
   const statusConfig = {
     PENDING: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', label: 'Pending' },
@@ -141,11 +203,12 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     }
 
     try {
+      const method = isSaved ? 'DELETE' : 'POST'
       const response = await fetch(`/api/picks/${pick.id}/bookmark`, {
-        method: 'POST',
+        method,
       })
 
-      if (response.ok) {
+      if (response.ok || response.status === 404 || response.status === 409) {
         setIsSaved(!isSaved)
         onStatsUpdate?.()
       }
@@ -214,6 +277,105 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     })
   }
 
+  const fetchComments = async () => {
+    if (isLoadingComments) return
+
+    setIsLoadingComments(true)
+    try {
+      const response = await fetch(`/api/picks/${pick.id}/comments`)
+      if (response.ok) {
+        const data = await response.json()
+        setComments(data.comments || [])
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error)
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!session) {
+      setModal({
+        isOpen: true,
+        title: 'Sign In Required',
+        message: 'Please sign in to comment on picks and join the conversation.',
+        type: 'info',
+      })
+      return
+    }
+
+    if (!commentText.trim()) return
+
+    setIsSubmittingComment(true)
+    try {
+      const response = await fetch(`/api/picks/${pick.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: commentText }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setComments([data.comment, ...comments])
+        setCommentText('')
+        onStatsUpdate?.()
+      } else {
+        const data = await response.json()
+        setModal({
+          isOpen: true,
+          title: 'Error',
+          message: data.error || 'Failed to post comment',
+          type: 'error',
+        })
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error)
+      setModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to post comment. Please try again.',
+        type: 'error',
+      })
+    } finally {
+      setIsSubmittingComment(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const response = await fetch(`/api/picks/${pick.id}/comments/${commentId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setComments(comments.filter(c => c.id !== commentId))
+        onStatsUpdate?.()
+      } else {
+        const data = await response.json()
+        setModal({
+          isOpen: true,
+          title: 'Error',
+          message: data.error || 'Failed to delete comment',
+          type: 'error',
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error)
+    }
+  }
+
+  const toggleComments = () => {
+    if (!showComments && comments.length === 0) {
+      fetchComments()
+    }
+    setShowComments(!showComments)
+  }
+
   return (
     <article className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden group">
       {/* Header */}
@@ -280,11 +442,9 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
         </h3>
 
         {/* Content */}
-        {pick.isPremium && !isUnlocked ? (
+        {pick.isPremium && !isUnlocked && !isOwnPick ? (
           <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 border-2 border-green-200">
-            {/* Blurred preview effect */}
-            <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10"></div>
-            <div className="relative z-20 p-8 text-center">
+            <div className="relative p-8 text-center">
               <div className="mb-4">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-green-700 rounded-full shadow-lg mb-3">
                   <Lock className="text-white" size={28} />
@@ -314,12 +474,6 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
                 </div>
               </div>
             </div>
-            {/* Decorative blur preview text in background */}
-            <div className="absolute inset-0 p-8 text-gray-900 opacity-20 blur-sm select-none">
-              <p className="text-sm leading-relaxed">
-                This is a premium prediction with detailed analysis, statistics, and insights that will help you make an informed decision...
-              </p>
-            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -341,8 +495,8 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
           </div>
         )}
 
-        {/* Game Date */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        {/* Game Date & Lock Status */}
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
           <p className="text-sm text-gray-500 flex items-center space-x-2">
             <span className="font-medium">Game Date:</span>
             <span>{new Date(pick.gameDate).toLocaleDateString('en-US', {
@@ -352,6 +506,17 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
               year: 'numeric'
             })}</span>
           </p>
+          {pick.isLocked && (
+            <div className="inline-flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg border border-red-200">
+              <Lock size={14} />
+              <span className="text-sm font-medium">Locked - Event Started</span>
+            </div>
+          )}
+          {!pick.isLocked && timeUntilLock && (
+            <div className="inline-flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-lg border border-yellow-200">
+              <span className="text-sm font-medium">{timeUntilLock}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -392,9 +557,16 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
               <span className="text-sm font-medium">{downvotes}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-              <MessageCircle size={18} />
-              <span className="text-sm font-medium">{comments}</span>
+            <button
+              onClick={toggleComments}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                showComments
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <MessageCircle size={18} className={showComments ? 'fill-primary' : ''} />
+              <span className="text-sm font-medium">{commentCount || comments.length}</span>
             </button>
 
             <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
@@ -425,6 +597,107 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
           </div>
         </div>
       </div>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="border-t border-gray-100 px-4 sm:px-6 py-4 bg-white">
+          {/* Comment Input */}
+          {session && (
+            <form onSubmit={handleCommentSubmit} className="mb-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-semibold text-sm">
+                    {session.user?.name?.[0]?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-sm"
+                    rows={2}
+                    maxLength={500}
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-gray-400">
+                      {commentText.length}/500
+                    </span>
+                    <button
+                      type="submit"
+                      disabled={!commentText.trim() || isSubmittingComment}
+                      className="flex items-center space-x-1 px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      <Send size={14} />
+                      <span>{isSubmittingComment ? 'Posting...' : 'Post'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {isLoadingComments ? (
+              <div className="text-center py-4">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : comments.length === 0 ? (
+              <div className="text-center py-6 text-gray-500 text-sm">
+                No comments yet. Be the first to share your thoughts!
+              </div>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id} className="flex items-start space-x-3">
+                  <Link
+                    href={`/profile/${comment.user.id}`}
+                    className="flex-shrink-0"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">
+                        {comment.user.name?.[0]?.toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-50 rounded-lg px-3 py-2">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Link
+                          href={`/profile/${comment.user.id}`}
+                          className="font-semibold text-sm text-gray-900 hover:text-primary"
+                        >
+                          {comment.user.name || 'Anonymous'}
+                        </Link>
+                        {comment.user.isVerified && (
+                          <CheckCircle size={14} className="text-blue-500" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {comment.content}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-4 mt-1 px-3">
+                      <span className="text-xs text-gray-500">
+                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                      </span>
+                      {session?.user?.id === comment.user.id && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center space-x-1"
+                        >
+                          <Trash2 size={12} />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       <Modal

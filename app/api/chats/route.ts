@@ -32,7 +32,7 @@ export async function POST() {
     const chat = await prisma.chat.create({
       data: {
         userId: session.user.id,
-        title: 'Sports Betting Chat',
+        title: 'Sports Predictions Chat',
       },
     })
 

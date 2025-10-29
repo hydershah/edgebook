@@ -418,7 +418,7 @@ export default function AccountSettings({ user }: { user: User }) {
         <textarea
           id="bio"
           name="bio"
-          placeholder="Share your betting style, favorite leagues, or track record highlights."
+          placeholder="Share your prediction style, favorite leagues, or track record highlights."
           value={formData.bio}
           onChange={handleChange}
           className="input-field h-32 resize-none"

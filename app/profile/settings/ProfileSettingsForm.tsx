@@ -133,7 +133,7 @@ export default function ProfileSettingsForm({ user }: ProfileSettingsFormProps) 
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Profile Basics</h2>
           <p className="text-sm text-gray-500">
-            Share who you are, what sports you cover, and how bettors can connect with you.
+            Share who you are, what sports you cover, and how users can connect with you.
           </p>
         </div>
 
@@ -207,7 +207,7 @@ export default function ProfileSettingsForm({ user }: ProfileSettingsFormProps) 
               <textarea
                 id="bio"
                 name="bio"
-                placeholder="Share your betting style, favorite leagues, or track record highlights."
+                placeholder="Share your prediction style, favorite leagues, or track record highlights."
                 value={formData.bio}
                 onChange={handleChange}
                 className="input-field h-32 resize-none"

@@ -173,7 +173,7 @@ export default function UserSearch({ className = '', variant = 'desktop', onUser
       return null
     }
 
-    return `No bettors matched “${debouncedQuery}”`
+    return `No users matched "${debouncedQuery}"`
   }, [debouncedQuery, loading])
 
   return (
@@ -195,7 +195,7 @@ export default function UserSearch({ className = '', variant = 'desktop', onUser
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search bettors or creators..."
+          placeholder="Search analysts or creators..."
           className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
           aria-label="Search users"
         />

@@ -1,7 +1,7 @@
-# Edge Book - Sports Betting Predictions Platform
+# Edge Book - Sports Predictions Platform
 
 ## Executive Summary
-Edge Book is a social platform where sports betting enthusiasts can share and monetize their predictions. Users can both create content (predictions) and consume content from others, similar to Twitter but with a pay-per-view monetization model for premium predictions.
+Edge Book is a social platform where sports enthusiasts can share and monetize their predictions. Users can both create content (predictions) and consume content from others, similar to Twitter but with a pay-per-view monetization model for premium predictions.
 
 ---
 
@@ -130,17 +130,17 @@ $
    - MUST be 18+ (or 21+ depending on jurisdiction)
    - How to verify age? ID upload? Third-party verification?
 
-2. **Gambling Regulations**
-   - Edge Book may be classified as gambling-adjacent
+2. **Platform Regulations**
+   - Edge Book provides informational content only
    - Different regulations per country/state
    - Need legal disclaimer: "For entertainment purposes only"?
    - Prohibited in certain jurisdictions?
 
-3. **Responsible Gambling Features**
+3. **Responsible Use Features**
    - Spending limits (daily, weekly, monthly)
    - Self-exclusion options
-   - Warnings about gambling risks
-   - Links to gambling addiction resources
+   - Warnings about responsible use
+   - Links to support resources
 
 4. **Terms of Service**
    - Clear ToS regarding:
@@ -398,7 +398,7 @@ $
 5. **Mobile App**
    - Push notifications
    - Live score updates
-   - Quick bet copying (integrate with betting platforms?)
+   - Quick pick sharing (integrate with sports platforms?)
 
 6. **AI/ML Features**
    - Recommended creators
@@ -406,7 +406,7 @@ $
    - Personalized feed ranking
 
 7. **API for Third Parties**
-   - Allow betting apps to integrate Edge Book predictions
+   - Allow sports apps to integrate Edge Book predictions
    - Revenue sharing
 
 ---
@@ -414,7 +414,7 @@ $
 ## Critical Path Items (Must-Have for MVP)
 
 ### Before Launch:
-- [ ] Legal review by attorney specializing in gambling/fintech
+- [ ] Legal review by attorney specializing in fintech/sports platforms
 - [ ] Age verification system
 - [ ] Terms of Service & Privacy Policy
 - [ ] Payment processor integration (Stripe recommended)
@@ -517,7 +517,7 @@ $
 
 1. **Legal Consultation**: Speak with a lawyer ASAP
 2. **Market Research**: Validate demand (survey potential users)
-3. **Competitive Analysis**: Study Discord betting groups, Telegram channels, paid picks services
+3. **Competitive Analysis**: Study Discord sports groups, Telegram channels, paid picks services
 4. **Technical Validation**: Test sports data APIs, payment processors
 5. **Financial Modeling**: Calculate unit economics (revenue per user, costs, break-even)
 6. **Wireframes/Mockups**: Design key user flows
@@ -528,7 +528,7 @@ $
 ## Conclusion
 
 Edge Book has strong potential but requires careful execution, especially around:
-- **Legal compliance** (gambling regulations)
+- **Legal compliance** (platform regulations)
 - **Fraud prevention** (manipulated accuracy stats)
 - **Payment security** (handling real money)
 - **User trust** (verification, moderation)

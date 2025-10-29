@@ -48,13 +48,13 @@ The EdgeBook.ai platform has solid foundational architecture with authentication
 
 **3. Compliance Disclaimers & Legal Pages**
 - Location: [components/Footer.tsx](components/Footer.tsx), [app/legal/](app/legal/)
-- Compliance footer with gambling hotline (1-800-522-4700)
+- Compliance footer with support hotline (1-800-522-4700)
 - "Must be 18+" disclaimer
 - Comprehensive legal pages:
   - [Terms of Service](app/legal/terms/page.tsx)
   - [Privacy Policy](app/legal/privacy/page.tsx)
   - [Platform Disclosures](app/legal/disclosures/page.tsx) (15% fee disclosure)
-  - [Responsible Gaming](app/legal/responsible-gaming/page.tsx)
+  - [Responsible Use](app/legal/responsible-gaming/page.tsx)
 - [Compliance consent modal](components/ComplianceConsent.tsx)
 
 **4. Railway Deployment**

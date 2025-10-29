@@ -18,8 +18,8 @@ export async function GET(request: Request) {
       where: {
         OR: [
           { name: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
           { bio: { contains: query, mode: 'insensitive' } },
+          { username: { contains: query, mode: 'insensitive' } },
         ],
       },
       select: {
