@@ -13,11 +13,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Get stats for all picks
-    const [likes, comments, picks, unlocks, userLikes, userBookmarks, userPurchases] = await Promise.all([
-      // Get like counts grouped by pickId
+    const [upvotes, downvotes, comments, picks, unlocks, userVotes, userBookmarks, userPurchases] = await Promise.all([
+      // Get upvote counts grouped by pickId
       prisma.like.groupBy({
         by: ['pickId'],
-        where: { pickId: { in: pickIds } },
+        where: { pickId: { in: pickIds }, voteType: 'UPVOTE' },
+        _count: true,
+      }),
+      // Get downvote counts grouped by pickId
+      prisma.like.groupBy({
+        by: ['pickId'],
+        where: { pickId: { in: pickIds }, voteType: 'DOWNVOTE' },
         _count: true,
       }),
       // Get comment counts grouped by pickId
@@ -37,11 +43,11 @@ export async function POST(request: NextRequest) {
         where: { pickId: { in: pickIds } },
         _count: true,
       }),
-      // Get user's likes
+      // Get user's votes
       session?.user?.id
         ? prisma.like.findMany({
             where: { userId: session.user.id, pickId: { in: pickIds } },
-            select: { pickId: true },
+            select: { pickId: true, voteType: true },
           })
         : [],
       // Get user's bookmarks
@@ -61,22 +67,27 @@ export async function POST(request: NextRequest) {
     ])
 
     // Create maps for quick lookup
-    const likeMap = new Map(likes.map((l) => [l.pickId, l._count]))
+    const upvoteMap = new Map(upvotes.map((l) => [l.pickId, l._count]))
+    const downvoteMap = new Map(downvotes.map((l) => [l.pickId, l._count]))
     const commentMap = new Map(comments.map((c) => [c.pickId, c._count]))
     const viewMap = new Map(picks.map((p) => [p.id, p.viewCount]))
     const unlockMap = new Map(unlocks.map((u) => [u.pickId, u._count]))
-    const userLikeSet = new Set(userLikes.map((l) => l.pickId))
+    const userVoteMap = new Map(userVotes.map((v) => [v.pickId, v.voteType]))
     const userBookmarkSet = new Set(userBookmarks.map((b) => b.pickId))
     const userPurchaseSet = new Set(userPurchases.map((p) => p.pickId))
 
     // Build response object
     const stats = pickIds.reduce((acc, pickId) => {
+      const upvoteCount = upvoteMap.get(pickId) || 0
+      const downvoteCount = downvoteMap.get(pickId) || 0
       acc[pickId] = {
-        likes: likeMap.get(pickId) || 0,
+        upvotes: upvoteCount,
+        downvotes: downvoteCount,
+        score: upvoteCount - downvoteCount,
         comments: commentMap.get(pickId) || 0,
         views: viewMap.get(pickId) || 0,
         unlocks: unlockMap.get(pickId) || 0,
-        isLiked: userLikeSet.has(pickId),
+        userVoteType: userVoteMap.get(pickId) || null,
         isBookmarked: userBookmarkSet.has(pickId),
         isUnlocked: userPurchaseSet.has(pickId),
       }

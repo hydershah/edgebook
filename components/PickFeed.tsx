@@ -25,11 +25,13 @@ interface Pick {
 }
 
 interface PickStats {
-  likes: number
+  upvotes: number
+  downvotes: number
+  score: number
   comments: number
   views: number
   unlocks: number
-  isLiked: boolean
+  userVoteType: 'UPVOTE' | 'DOWNVOTE' | null
   isBookmarked: boolean
   isUnlocked: boolean
 }

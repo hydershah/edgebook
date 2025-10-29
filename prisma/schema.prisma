@@ -80,6 +80,7 @@ model Like {
   id        String   @id @default(cuid())
   userId    String
   pickId    String
+  voteType  VoteType
   createdAt DateTime @default(now())
   pick      Pick     @relation(fields: [pickId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -295,4 +296,9 @@ enum Sport {
   SOCCER
   COLLEGE_FOOTBALL
   COLLEGE_BASKETBALL
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
 }

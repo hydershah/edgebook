@@ -564,8 +564,8 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-wide text-primary">From the community</p>
               </div>
               <blockquote className="mt-6 text-lg leading-relaxed text-gray-700">
-                “I stopped DM’ing my slips because EdgeBook shows the full story—profit, loss, and sport-by-sport splits.
-                The unlocks pay out weekly and I don’t have to babysit spreadsheets anymore.”
+                &ldquo;I stopped DM&rsquo;ing my slips because EdgeBook shows the full story—profit, loss, and sport-by-sport splits.
+                The unlocks pay out weekly and I don&rsquo;t have to babysit spreadsheets anymore.&rdquo;
               </blockquote>
               <div className="mt-6 text-sm text-gray-500">
                 <p className="font-semibold text-gray-800">Jordan P. — NHL &amp; MLB handicapper</p>
@@ -578,8 +578,8 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-wide text-primary">Buyer perspective</p>
               </div>
               <blockquote className="mt-6 text-lg leading-relaxed text-gray-700">
-                “I only pay for predictions when the numbers check out. EdgeBook makes it obvious: I can see unit
-                history, accuracy by sport, and whether the creator actually beats the closing line.”
+                &ldquo;I only pay for predictions when the numbers check out. EdgeBook makes it obvious: I can see unit
+                history, accuracy by sport, and whether the creator actually beats the closing line.&rdquo;
               </blockquote>
               <div className="mt-6 text-sm text-gray-500">
                 <p className="font-semibold text-gray-800">Melissa R. — Verified subscriber</p>

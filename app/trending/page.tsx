@@ -261,11 +261,13 @@ export default function TrendingPage() {
                       gameDate: pick.createdAt,
                     }}
                     stats={{
-                      likes: pick.engagement.likes,
+                      upvotes: pick.engagement.likes,
+                      downvotes: 0,
+                      score: pick.engagement.likes,
                       comments: pick.engagement.comments,
                       views: pick.engagement.views,
                       unlocks: 0,
-                      isLiked: false,
+                      userVoteType: null,
                       isBookmarked: false,
                       isUnlocked: !pick.isPremium,
                     }}

@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Lock, TrendingUp, Heart, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal, CheckCircle } from 'lucide-react'
+import { Lock, TrendingUp, ThumbsUp, ThumbsDown, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal, CheckCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useSession } from 'next-auth/react'
 import Modal from './Modal'
 
 interface PickStats {
-  likes: number
+  upvotes: number
+  downvotes: number
+  score: number
   comments: number
   views: number
   unlocks: number
-  isLiked: boolean
+  userVoteType: 'UPVOTE' | 'DOWNVOTE' | null
   isBookmarked: boolean
   isUnlocked: boolean
 }
@@ -43,10 +45,10 @@ interface PickCardProps {
 
 export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) {
   const { data: session } = useSession()
-  const [isLiked, setIsLiked] = useState(stats?.isLiked || false)
+  const [userVoteType, setUserVoteType] = useState<'UPVOTE' | 'DOWNVOTE' | null>(stats?.userVoteType || null)
   const [isSaved, setIsSaved] = useState(stats?.isBookmarked || false)
   const [isUnlocking, setIsUnlocking] = useState(false)
-  
+
   // Modal state
   const [modal, setModal] = useState<{
     isOpen: boolean
@@ -63,7 +65,7 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
 
   useEffect(() => {
     if (stats) {
-      setIsLiked(stats.isLiked)
+      setUserVoteType(stats.userVoteType)
       setIsSaved(stats.isBookmarked)
     }
   }, [stats])
@@ -80,7 +82,9 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     trackView()
   }, [pick.id])
 
-  const likes = stats?.likes || 0
+  const upvotes = stats?.upvotes || 0
+  const downvotes = stats?.downvotes || 0
+  const score = stats?.score || 0
   const comments = stats?.comments || 0
   const views = stats?.views || 0
   const unlocks = stats?.unlocks || 0
@@ -95,12 +99,12 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
 
   const status = statusConfig[pick.status as keyof typeof statusConfig]
 
-  const handleLike = async () => {
+  const handleVote = async (voteType: 'UPVOTE' | 'DOWNVOTE') => {
     if (!session) {
       setModal({
         isOpen: true,
         title: 'Sign In Required',
-        message: 'Please sign in to like picks and engage with the community.',
+        message: 'Please sign in to vote on picks and engage with the community.',
         type: 'info',
       })
       return
@@ -109,14 +113,19 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     try {
       const response = await fetch(`/api/picks/${pick.id}/like`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ voteType }),
       })
 
       if (response.ok) {
-        setIsLiked(!isLiked)
+        const data = await response.json()
+        setUserVoteType(data.voteType)
         onStatsUpdate?.()
       }
     } catch (error) {
-      console.error('Error toggling like:', error)
+      console.error('Error toggling vote:', error)
     }
   }
 
@@ -351,19 +360,36 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
         <div className="flex items-center justify-between">
           {/* Left actions */}
           <div className="flex items-center space-x-1">
+            {/* Upvote button */}
             <button
-              onClick={handleLike}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isLiked
+              onClick={() => handleVote('UPVOTE')}
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+                userVoteType === 'UPVOTE'
+                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <ThumbsUp
+                size={18}
+                className={userVoteType === 'UPVOTE' ? 'fill-green-600' : ''}
+              />
+              <span className="text-sm font-medium">{upvotes}</span>
+            </button>
+
+            {/* Downvote button */}
+            <button
+              onClick={() => handleVote('DOWNVOTE')}
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+                userVoteType === 'DOWNVOTE'
                   ? 'bg-red-50 text-red-600 hover:bg-red-100'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Heart
+              <ThumbsDown
                 size={18}
-                className={isLiked ? 'fill-red-600' : ''}
+                className={userVoteType === 'DOWNVOTE' ? 'fill-red-600' : ''}
               />
-              <span className="text-sm font-medium">{likes}</span>
+              <span className="text-sm font-medium">{downvotes}</span>
             </button>
 
             <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">

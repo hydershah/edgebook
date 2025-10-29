@@ -12,8 +12,9 @@ export async function GET(
     const { pickId } = params
 
     // Get all stats in parallel
-    const [likeCount, commentCount, viewCount, unlockCount, userEngagement] = await Promise.all([
-      prisma.like.count({ where: { pickId } }),
+    const [upvoteCount, downvoteCount, commentCount, viewCount, unlockCount, userEngagement] = await Promise.all([
+      prisma.like.count({ where: { pickId, voteType: 'UPVOTE' } }),
+      prisma.like.count({ where: { pickId, voteType: 'DOWNVOTE' } }),
       prisma.comment.count({ where: { pickId } }),
       prisma.pick.findUnique({ where: { id: pickId }, select: { viewCount: true } }),
       prisma.purchase.count({ where: { pickId } }),
@@ -32,14 +33,16 @@ export async function GET(
         : [null, null, null],
     ])
 
-    const [isLiked, isBookmarked, isUnlocked] = userEngagement
+    const [userVote, isBookmarked, isUnlocked] = userEngagement
 
     return NextResponse.json({
-      likes: likeCount,
+      upvotes: upvoteCount,
+      downvotes: downvoteCount,
+      score: upvoteCount - downvoteCount,
       comments: commentCount,
       views: viewCount?.viewCount || 0,
       unlocks: unlockCount,
-      isLiked: !!isLiked,
+      userVoteType: userVote?.voteType || null,
       isBookmarked: !!isBookmarked,
       isUnlocked: !!isUnlocked,
     })
