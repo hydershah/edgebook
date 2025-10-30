@@ -77,11 +77,12 @@ class SimpleCache {
     const now = Date.now()
     const keysToDelete: string[] = []
 
-    for (const [key, entry] of this.cache.entries()) {
+    // Convert entries to array for ES5 compatibility
+    Array.from(this.cache.entries()).forEach(([key, entry]) => {
       if (now > entry.expiresAt) {
         keysToDelete.push(key)
       }
-    }
+    })
 
     keysToDelete.forEach(key => this.cache.delete(key))
   }
