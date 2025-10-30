@@ -189,31 +189,33 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="bg-white text-gray-900">
+    <main className="bg-white text-gray-900">
       <ComplianceConsent />
-      <section className="border-b border-gray-200 bg-gradient-to-br from-slate-50 via-indigo-50/30 to-emerald-50/20">
+      <section className="border-b border-gray-200 bg-gradient-to-br from-slate-50 via-indigo-50/30 to-emerald-50/20" aria-label="Hero section">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="text-center">
             <h1 className="whitespace-nowrap text-heading-1 text-gray-900">
               Think you&rsquo;ve got the edge? Prove it!
             </h1>
             <p className="mx-auto mt-14 max-w-3xl text-subheader-2 text-gray-600">
-              Showcase your picks, track results, and earn from your insight
+              Showcase your sports picks, track performance results, and earn money from your prediction insights across NBA, NFL, MLB, UFC and more
             </p>
-            <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <nav className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center" aria-label="Primary actions">
               <Link
                 href="/auth/signup"
                 className="inline-flex items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white shadow-md transition hover:bg-primary-dark hover:shadow-lg"
+                aria-label="Sign up for free EdgeBook account"
               >
                 Start Your Free Profile
               </Link>
               <Link
                 href="/feed"
                 className="text-base font-semibold text-gray-700 transition hover:text-primary"
+                aria-label="Browse public sports picks"
               >
                 Browse Public Picks
               </Link>
-            </div>
+            </nav>
           </div>
 
           {/* Profile Card - Horizontal Layout */}
@@ -357,10 +359,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="py-20" aria-labelledby="features-heading">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-heading-2 text-gray-900">
+            <h2 id="features-heading" className="text-heading-2 text-gray-900">
               Built for sports fans who predict outcomes
             </h2>
             <p className="mt-4 text-paragraph-1 text-gray-600">
@@ -369,53 +371,53 @@ export default function Home() {
           </div>
 
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <article className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10" aria-hidden="true">
                 <Users className="h-6 w-6 text-primary" />
               </div>
               <h3 className="mt-6 text-subheader-2 text-gray-900">Profiles built on proof</h3>
               <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Build trust instantly. Show your bio, socials, and verified stats so followers know your record is real.
               </p>
-            </div>
+            </article>
 
-            <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <article className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10" aria-hidden="true">
                 <Target className="h-6 w-6 text-primary" />
               </div>
               <h3 className="mt-6 text-subheader-2 text-gray-900">Prediction posts that sell</h3>
               <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Post free teasers or premium picks with proof of performance. Every result can be tracked for public record.
               </p>
-            </div>
+            </article>
 
-            <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <article className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10" aria-hidden="true">
                 <Wallet className="h-6 w-6 text-primary" />
               </div>
               <h3 className="mt-6 text-subheader-2 text-gray-900">Payouts Simplified</h3>
               <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Track earnings, create both subscriptions and per pick paywalls. All from one transparent dashboard.
               </p>
-            </div>
+            </article>
 
-            <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <article className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10" aria-hidden="true">
                 <LineChart className="h-6 w-6 text-primary" />
               </div>
               <h3 className="mt-6 text-subheader-2 text-gray-900">Smart discovery for fans</h3>
               <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Get discovered by followers, sort by sport or top earners, and rise up the leaderboard with every winning pick.
               </p>
-            </div>
+            </article>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-b border-gray-200 bg-background py-20">
+      <section className="border-t border-b border-gray-200 bg-background py-20" aria-labelledby="how-it-works-heading">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-heading-2 text-gray-900">
+            <h2 id="how-it-works-heading" className="text-heading-2 text-gray-900">
               Post. Prove. Profit
             </h2>
             <p className="mt-4 text-paragraph-1 text-gray-600">
@@ -476,10 +478,10 @@ export default function Home() {
       </section>
 
 
-      <section className="bg-background py-20">
+      <section className="bg-background py-20" aria-labelledby="trust-heading">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-heading-2 text-gray-900">
+            <h2 id="trust-heading" className="text-heading-2 text-gray-900">
               Built on trust.
             </h2>
             <p className="mt-4 text-paragraph-1 text-gray-600">
@@ -531,10 +533,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-gray-900 py-20 text-white">
+      <section className="bg-gray-900 py-20 text-white" aria-labelledby="cta-heading">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl backdrop-blur">
-            <h2 className="text-heading-2">
+            <h2 id="cta-heading" className="text-heading-2">
               Join the community where picks become proof.
             </h2>
             <p className="mt-4 text-paragraph-1 text-white/80">
@@ -560,6 +562,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   )
 }

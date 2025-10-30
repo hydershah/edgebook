@@ -1,6 +1,6 @@
-# EdgeBook.ai - Sports Predictions Social Platform
+# Sports Predictions Social Platform
 
-EdgeBook is an innovative sports community platform that combines social media features with a marketplace for sports picks. Users can share their picks, follow top performers, purchase premium picks, and get AI-powered sports insights.
+A sports community platform that combines social media features with a marketplace for sports picks. Users can share their picks, follow top performers, purchase premium picks, and get AI-powered sports insights.
 
 ## Features
 
@@ -40,7 +40,7 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 git clone <your-repo-url>
-cd edgebook
+cd <your-project-directory>
 ```
 
 ### 2. Install dependencies
@@ -61,7 +61,7 @@ Then fill in your environment variables:
 
 ```env
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/edgebook"
+DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 
 # NextAuth
 NEXTAUTH_SECRET="your-secret-key-here"
@@ -79,7 +79,7 @@ OPENAI_API_KEY="sk-your-openai-api-key"
 AWS_ACCESS_KEY_ID="your-aws-access-key"
 AWS_SECRET_ACCESS_KEY="your-aws-secret-key"
 AWS_REGION="us-east-1"
-AWS_S3_BUCKET="edgebook-uploads"
+AWS_S3_BUCKET="your-bucket-name"
 ```
 
 ### 4. Set up the database
@@ -111,7 +111,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 2. Create a new database:
 
 ```sql
-CREATE DATABASE edgebook;
+CREATE DATABASE your_database_name;
 ```
 
 3. Update the `DATABASE_URL` in your `.env` file with your credentials
@@ -150,7 +150,7 @@ npx prisma migrate reset
 1. Create an AWS account
 2. Create an S3 bucket:
    - Go to S3 in AWS Console
-   - Create a new bucket (e.g., `edgebook-uploads`)
+   - Create a new bucket with a unique name
    - Enable public access for uploaded files
    - Set up CORS configuration
 3. Create IAM user with S3 permissions:
@@ -183,7 +183,7 @@ Add this CORS configuration to your S3 bucket:
 ## Project Structure
 
 ```
-edgebook/
+project-root/
 ├── app/
 │   ├── api/              # API routes
 │   │   ├── auth/         # Authentication
@@ -274,14 +274,10 @@ This project is licensed under the MIT License.
 
 ## Support
 
-For support, email support@edgebook.ai or join our Discord community.
+For support, please refer to the project documentation or create an issue in the repository.
 
 ## Responsible Use
 
-EdgeBook promotes responsible use. If you need help, please call 1-800-522-4700.
+This platform promotes responsible use. If you need help with problem gambling, please seek appropriate resources.
 
 You must be 18+ to use this platform. Please play responsibly.
-
----
-
-Built with ❤️ by the EdgeBook team
