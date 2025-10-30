@@ -124,21 +124,34 @@ export default function PickPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors mb-6"
-        >
-          <ArrowLeft size={20} />
-          <span>Go back</span>
-        </button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="mx-auto max-w-3xl px-4 py-3">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center space-x-2 text-gray-700 hover:text-primary transition-colors font-medium"
+          >
+            <ArrowLeft size={20} />
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
 
-        <PickCard
-          pick={pick}
-          stats={stats || undefined}
-          onStatsUpdate={fetchPick}
-        />
+      {/* Pick Content */}
+      <div className="mx-auto max-w-3xl px-4 py-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <PickCard
+            pick={pick}
+            stats={stats || undefined}
+            onStatsUpdate={fetchPick}
+          />
+        </div>
+
+        {/* Additional Context */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>Share this pick with your friends to get their thoughts!</p>
+        </div>
       </div>
     </div>
   )
