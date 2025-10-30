@@ -5,24 +5,45 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // Skip middleware for auth routes to prevent redirect loops
+  if (path.startsWith("/auth")) {
+    return NextResponse.next();
+  }
+
   // Admin routes protection
   if (path.startsWith("/admin")) {
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    try {
+      const token = await getToken({
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
 
-    // Check if user is authenticated
-    if (!token) {
+      // Debug logging for production
+      if (!token) {
+        console.log("Admin middleware: No token found for path:", path);
+      }
+
+      // Check if user is authenticated
+      if (!token) {
+        return NextResponse.redirect(
+          new URL(`/auth/signin?callbackUrl=${path}`, request.url)
+        );
+      }
+
+      // Check if user has admin or moderator role
+      const userRole = (token as any).role;
+      if (userRole !== "ADMIN" && userRole !== "MODERATOR") {
+        console.log("Admin middleware: User role is not admin/moderator:", userRole);
+        return NextResponse.redirect(new URL("/feed", request.url));
+      }
+
+      // Log successful admin access
+      console.log("Admin middleware: Access granted to", token.email, "with role", userRole);
+    } catch (error) {
+      console.error("Admin middleware error:", error);
       return NextResponse.redirect(
         new URL(`/auth/signin?callbackUrl=${path}`, request.url)
       );
-    }
-
-    // Check if user has admin or moderator role
-    const userRole = (token as any).role;
-    if (userRole !== "ADMIN" && userRole !== "MODERATOR") {
-      return NextResponse.redirect(new URL("/feed", request.url));
     }
   }
 
