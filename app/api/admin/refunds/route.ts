@@ -20,8 +20,9 @@ const refundSchema = z.object({
  * Process a refund
  */
 export async function POST(request: NextRequest) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json(

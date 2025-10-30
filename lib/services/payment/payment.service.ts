@@ -5,7 +5,26 @@
 
 import { prisma } from '@/lib/prisma';
 import { whopService } from '../whop/whop.service';
-import { PaymentStatus, TransactionType, TransactionStatus } from '@prisma/client';
+import { PaymentStatus } from '@prisma/client';
+
+// Define enums locally since they're not yet used in the Prisma schema (Transaction model uses String temporarily)
+enum TransactionType {
+  PICK_PURCHASE = 'PICK_PURCHASE',
+  PICK_SALE = 'PICK_SALE',
+  SUBSCRIPTION = 'SUBSCRIPTION',
+  SUBSCRIPTION_REVENUE = 'SUBSCRIPTION_REVENUE',
+  PAYOUT = 'PAYOUT',
+  REFUND = 'REFUND',
+  PLATFORM_FEE = 'PLATFORM_FEE',
+  ADJUSTMENT = 'ADJUSTMENT',
+}
+
+enum TransactionStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REVERSED = 'REVERSED',
+}
 
 interface ProcessPurchaseParams {
   userId: string;
@@ -201,7 +220,7 @@ export class PaymentService {
         data: {
           userId: purchase.pick.userId,
           type: TransactionType.PICK_SALE,
-          amount: purchase.creatorEarnings,
+          amount: purchase.creatorEarnings || 0,
           status: TransactionStatus.COMPLETED,
           whopReferenceId: whopPaymentId,
           referenceId: purchase.id,
@@ -263,7 +282,7 @@ export class PaymentService {
       where: {
         userId,
         status: {
-          in: ['COMPLETED', 'PROCESSING', 'PENDING'],
+          in: ['PAID', 'PROCESSING', 'PENDING'],
         },
       },
     });

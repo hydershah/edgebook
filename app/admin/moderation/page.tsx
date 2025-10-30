@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import ToastNotification from "@/components/admin/ToastNotification";
@@ -24,11 +24,7 @@ export default function ModerationPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  useEffect(() => {
-    loadReports();
-  }, [filter]);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -42,7 +38,11 @@ export default function ModerationPage() {
       console.error("Error loading reports:", error);
     }
     setLoading(false);
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   const openConfirmModal = (reportId: string, action: "remove" | "dismiss") => {
     setConfirmModal({ isOpen: true, reportId, action });

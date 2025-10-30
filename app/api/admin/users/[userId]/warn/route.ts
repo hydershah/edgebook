@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { z } from "zod";
 
 const warnUserSchema = z.object({
@@ -81,8 +81,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: "WARN_USER",
-      resource: "USER",
+      action: AuditAction.WARN_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: true,
       ...getRequestMetadata(req),
@@ -115,8 +115,8 @@ export async function POST(
 
       await logAudit({
         userId: session.user.id,
-        action: "AUTO_FLAG_USER",
-        resource: "USER",
+        action: AuditAction.AUTO_FLAG_USER,
+        resource: AuditResource.USER,
         resourceId: userId,
         success: true,
         ...getRequestMetadata(req),
@@ -149,8 +149,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: "WARN_USER",
-      resource: "USER",
+      action: AuditAction.WARN_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: false,
       ...getRequestMetadata(req),

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { ReportStatus, ReportPriority } from "@prisma/client";
 import { z } from "zod";
 
@@ -275,8 +275,8 @@ export async function PATCH(
 
     await logAudit({
       userId: session.user.id,
-      action: "UPDATE_REPORT",
-      resource: "REPORT",
+      action: AuditAction.UPDATE_REPORT,
+      resource: AuditResource.REPORT,
       resourceId: reportId,
       success: true,
       ...getRequestMetadata(req),
@@ -299,8 +299,8 @@ export async function PATCH(
 
     await logAudit({
       userId: session.user.id,
-      action: "UPDATE_REPORT",
-      resource: "REPORT",
+      action: AuditAction.UPDATE_REPORT,
+      resource: AuditResource.REPORT,
       resourceId: reportId,
       success: false,
       ...getRequestMetadata(req),

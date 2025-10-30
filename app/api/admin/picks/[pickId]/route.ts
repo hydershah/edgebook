@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { ModerationStatus, PickStatus } from "@prisma/client";
 import { z } from "zod";
 
@@ -86,8 +86,8 @@ export async function PATCH(
 
     await logAudit({
       userId: session.user.id,
-      action: "MODERATE_PICK",
-      resource: "PICK",
+      action: AuditAction.MODERATE_PICK,
+      resource: AuditResource.PICK,
       resourceId: pickId,
       success: true,
       ...getRequestMetadata(req),
@@ -111,8 +111,8 @@ export async function PATCH(
 
     await logAudit({
       userId: session.user.id,
-      action: "MODERATE_PICK",
-      resource: "PICK",
+      action: AuditAction.MODERATE_PICK,
+      resource: AuditResource.PICK,
       resourceId: pickId,
       success: false,
       ...getRequestMetadata(req),
@@ -161,8 +161,8 @@ export async function DELETE(
 
     await logAudit({
       userId: session.user.id,
-      action: "DELETE_PICK",
-      resource: "PICK",
+      action: AuditAction.DELETE_PICK,
+      resource: AuditResource.PICK,
       resourceId: pickId,
       success: true,
       ...getRequestMetadata(req),
@@ -178,8 +178,8 @@ export async function DELETE(
 
     await logAudit({
       userId: session.user.id,
-      action: "DELETE_PICK",
-      resource: "PICK",
+      action: AuditAction.DELETE_PICK,
+      resource: AuditResource.PICK,
       resourceId: pickId,
       success: false,
       ...getRequestMetadata(req),

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import {
   ReportStatus,
   ReportPriority,
@@ -198,8 +198,8 @@ export async function GET(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "LIST_REPORTS",
-      resource: "REPORT",
+      action: AuditAction.LIST_REPORTS,
+      resource: AuditResource.REPORT,
       success: true,
       ...getRequestMetadata(req),
       details: { page, limit, filters: { status, priority, targetType } },
@@ -224,8 +224,8 @@ export async function GET(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "LIST_REPORTS",
-      resource: "REPORT",
+      action: AuditAction.LIST_REPORTS,
+      resource: AuditResource.REPORT,
       success: false,
       ...getRequestMetadata(req),
       details: { error: error.message },
@@ -322,8 +322,8 @@ export async function POST(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "CREATE_REPORT",
-      resource: "REPORT",
+      action: AuditAction.CREATE_REPORT,
+      resource: AuditResource.REPORT,
       resourceId: report.id,
       success: true,
       ...getRequestMetadata(req),
@@ -343,8 +343,8 @@ export async function POST(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "CREATE_REPORT",
-      resource: "REPORT",
+      action: AuditAction.CREATE_REPORT,
+      resource: AuditResource.REPORT,
       success: false,
       ...getRequestMetadata(req),
       details: { error: error.message },

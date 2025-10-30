@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import InputModal from "@/components/admin/InputModal";
@@ -29,11 +29,7 @@ export default function PayoutsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  useEffect(() => {
-    loadPayouts();
-  }, [filter]);
-
-  const loadPayouts = async () => {
+  const loadPayouts = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -46,7 +42,11 @@ export default function PayoutsPage() {
       console.error("Error loading payouts:", error);
     }
     setLoading(false);
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadPayouts();
+  }, [loadPayouts]);
 
   const openConfirmModal = (payoutId: string, action: "approve" | "reject") => {
     if (action === "reject") {

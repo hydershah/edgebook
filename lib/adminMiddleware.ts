@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 import { UserRole } from "@prisma/client";
-import { logAudit } from "./audit";
+import { logAudit, AuditAction, AuditResource } from "./audit";
 
 export interface AdminSession {
   user: {
@@ -32,8 +32,8 @@ export async function requireAdmin(
 
   if (!session?.user) {
     await logAudit({
-      action: "ADMIN_ACCESS_DENIED",
-      resource: "ADMIN",
+      action: AuditAction.ADMIN_ACCESS_DENIED,
+      resource: AuditResource.ADMIN,
       success: false,
       ipAddress,
       userAgent,
@@ -52,8 +52,8 @@ export async function requireAdmin(
   if (!isAdmin && !(allowModerator && isModerator)) {
     await logAudit({
       userId: session.user.id,
-      action: "ADMIN_ACCESS_DENIED",
-      resource: "ADMIN",
+      action: AuditAction.ADMIN_ACCESS_DENIED,
+      resource: AuditResource.ADMIN,
       success: false,
       ipAddress,
       userAgent,

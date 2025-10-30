@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Search, Filter } from "lucide-react";
 
 export default function AuditLogsPage() {
@@ -13,11 +13,7 @@ export default function AuditLogsPage() {
     search: "",
   });
 
-  useEffect(() => {
-    loadLogs();
-  }, [filters]);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -32,7 +28,11 @@ export default function AuditLogsPage() {
       console.error("Error loading audit logs:", error);
     }
     setLoading(false);
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   return (
     <div className="space-y-6">

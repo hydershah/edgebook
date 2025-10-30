@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { DisputeStatus, PickStatus } from "@prisma/client";
 import { z } from "zod";
 
@@ -88,8 +88,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: "RESOLVE_DISPUTE",
-      resource: "DISPUTE",
+      action: AuditAction.RESOLVE_DISPUTE,
+      resource: AuditResource.DISPUTE,
       resourceId: disputeId,
       success: true,
       ...getRequestMetadata(req),
@@ -120,8 +120,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: "RESOLVE_DISPUTE",
-      resource: "DISPUTE",
+      action: AuditAction.RESOLVE_DISPUTE,
+      resource: AuditResource.DISPUTE,
       resourceId: disputeId,
       success: false,
       ...getRequestMetadata(req),

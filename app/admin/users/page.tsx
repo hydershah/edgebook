@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ActionModal from "@/components/admin/ActionModal";
 import ToastNotification from "@/components/admin/ToastNotification";
@@ -33,11 +33,7 @@ export default function UsersManagementPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  useEffect(() => {
-    loadUsers();
-  }, [statusFilter, roleFilter]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -52,7 +48,11 @@ export default function UsersManagementPage() {
       console.error("Error loading users:", error);
     }
     setLoading(false);
-  };
+  }, [statusFilter, roleFilter, searchTerm]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { AccountStatus } from "@prisma/client";
 import { z } from "zod";
 import { statusBroadcast } from "@/lib/statusBroadcast";
@@ -94,8 +94,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: "BAN_USER",
-      resource: "USER",
+      action: AuditAction.BAN_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: true,
       ...getRequestMetadata(req),
@@ -137,8 +137,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: "BAN_USER",
-      resource: "USER",
+      action: AuditAction.BAN_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: false,
       ...getRequestMetadata(req),
@@ -198,8 +198,8 @@ export async function DELETE(
 
     await logAudit({
       userId: session.user.id,
-      action: "UNBAN_USER",
-      resource: "USER",
+      action: AuditAction.UNBAN_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: true,
       ...getRequestMetadata(req),
@@ -230,8 +230,8 @@ export async function DELETE(
 
     await logAudit({
       userId: session.user.id,
-      action: "UNBAN_USER",
-      resource: "USER",
+      action: AuditAction.UNBAN_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: false,
       ...getRequestMetadata(req),

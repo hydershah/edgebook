@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { PayoutStatus } from "@prisma/client";
 import { z } from "zod";
 
@@ -83,8 +83,8 @@ export async function POST(
 
       await logAudit({
         userId: session.user.id,
-        action: "APPROVE_PAYOUT",
-        resource: "PAYOUT",
+        action: AuditAction.APPROVE_PAYOUT,
+        resource: AuditResource.PAYOUT,
         resourceId: payoutId,
         success: true,
         ...getRequestMetadata(req),
@@ -116,8 +116,8 @@ export async function POST(
 
       await logAudit({
         userId: session.user.id,
-        action: "REJECT_PAYOUT",
-        resource: "PAYOUT",
+        action: AuditAction.REJECT_PAYOUT,
+        resource: AuditResource.PAYOUT,
         resourceId: payoutId,
         success: true,
         ...getRequestMetadata(req),
@@ -151,8 +151,8 @@ export async function POST(
 
     await logAudit({
       userId: session.user.id,
-      action: `${action?.toUpperCase()}_PAYOUT`,
-      resource: "PAYOUT",
+      action: action === "approve" ? AuditAction.APPROVE_PAYOUT : AuditAction.REJECT_PAYOUT,
+      resource: AuditResource.PAYOUT,
       resourceId: payoutId,
       success: false,
       ...getRequestMetadata(req),

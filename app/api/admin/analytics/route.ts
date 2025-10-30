@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const authCheck = await requireAdmin(req);
@@ -118,8 +118,8 @@ export async function GET(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "VIEW_ANALYTICS",
-      resource: "ANALYTICS",
+      action: AuditAction.VIEW_ANALYTICS,
+      resource: AuditResource.ANALYTICS,
       success: true,
       ...getRequestMetadata(req),
       details: { days },
@@ -177,8 +177,8 @@ export async function GET(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "VIEW_ANALYTICS",
-      resource: "ANALYTICS",
+      action: AuditAction.VIEW_ANALYTICS,
+      resource: AuditResource.ANALYTICS,
       success: false,
       ...getRequestMetadata(req),
       details: { error: error.message },

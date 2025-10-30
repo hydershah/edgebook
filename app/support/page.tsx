@@ -139,7 +139,7 @@ export default function SupportPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-12 max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-subheader-1 font-bold text-gray-900 mb-2">Send us a message</h2>
-            <p className="text-paragraph-2 text-gray-600">Fill out the form below and we'll get back to you within 24 hours</p>
+            <p className="text-paragraph-2 text-gray-600">Fill out the form below and we&apos;ll get back to you within 24 hours</p>
           </div>
 
           {submitStatus === 'success' && (

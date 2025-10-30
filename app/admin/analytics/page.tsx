@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import KPICard from "@/components/admin/KPICard";
 import { Users, DollarSign, FileText, TrendingUp } from "lucide-react";
 
@@ -9,11 +9,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState(30);
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [period]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/analytics?days=${period}`);
@@ -23,7 +19,11 @@ export default function AnalyticsPage() {
       console.error("Error loading analytics:", error);
     }
     setLoading(false);
-  };
+  }, [period]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   if (loading) {
     return (

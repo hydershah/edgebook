@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { UserRole, AccountStatus } from "@prisma/client";
 import { z } from "zod";
 
@@ -120,8 +120,8 @@ export async function GET(
 
     await logAudit({
       userId: session.user.id,
-      action: "VIEW_USER",
-      resource: "USER",
+      action: AuditAction.VIEW_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: true,
       ...getRequestMetadata(req),
@@ -143,8 +143,8 @@ export async function GET(
 
     await logAudit({
       userId: session.user.id,
-      action: "VIEW_USER",
-      resource: "USER",
+      action: AuditAction.VIEW_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: false,
       ...getRequestMetadata(req),
@@ -215,8 +215,8 @@ export async function PATCH(
 
     await logAudit({
       userId: session.user.id,
-      action: "UPDATE_USER",
-      resource: "USER",
+      action: AuditAction.UPDATE_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: true,
       ...getRequestMetadata(req),
@@ -241,8 +241,8 @@ export async function PATCH(
 
     await logAudit({
       userId: session.user.id,
-      action: "UPDATE_USER",
-      resource: "USER",
+      action: AuditAction.UPDATE_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: false,
       ...getRequestMetadata(req),
@@ -297,8 +297,8 @@ export async function DELETE(
 
     await logAudit({
       userId: session.user.id,
-      action: "DELETE_USER",
-      resource: "USER",
+      action: AuditAction.DELETE_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: true,
       ...getRequestMetadata(req),
@@ -316,8 +316,8 @@ export async function DELETE(
 
     await logAudit({
       userId: session.user.id,
-      action: "DELETE_USER",
-      resource: "USER",
+      action: AuditAction.DELETE_USER,
+      resource: AuditResource.USER,
       resourceId: userId,
       success: false,
       ...getRequestMetadata(req),

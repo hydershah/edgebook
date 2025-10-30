@@ -189,7 +189,7 @@ async function handlePayoutCompleted(event: any) {
   await prisma.payout.update({
     where: { whopTransferId: transferId },
     data: {
-      status: 'COMPLETED',
+      status: 'PAID',
       processedAt: new Date(),
     },
   });

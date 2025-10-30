@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ConfirmModal from "@/components/admin/ConfirmModal";
 import ToastNotification from "@/components/admin/ToastNotification";
@@ -22,11 +22,7 @@ export default function PicksManagementPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  useEffect(() => {
-    loadPicks();
-  }, [filter]);
-
-  const loadPicks = async () => {
+  const loadPicks = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -39,7 +35,11 @@ export default function PicksManagementPage() {
       console.error("Error loading picks:", error);
     }
     setLoading(false);
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadPicks();
+  }, [loadPicks]);
 
   const openConfirmModal = (pickId: string) => {
     setConfirmModal({ isOpen: true, pickId });

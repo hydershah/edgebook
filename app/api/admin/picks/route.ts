@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
+import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 import { Sport, PickStatus, ModerationStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -103,8 +103,8 @@ export async function GET(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "LIST_PICKS",
-      resource: "PICK",
+      action: AuditAction.LIST_PICKS,
+      resource: AuditResource.PICK,
       success: true,
       ...getRequestMetadata(req),
       details: { page, limit, filters: { sport, status, moderationStatus } },
@@ -129,8 +129,8 @@ export async function GET(req: NextRequest) {
 
     await logAudit({
       userId: session.user.id,
-      action: "LIST_PICKS",
-      resource: "PICK",
+      action: AuditAction.LIST_PICKS,
+      resource: AuditResource.PICK,
       success: false,
       ...getRequestMetadata(req),
       details: { error: error.message },

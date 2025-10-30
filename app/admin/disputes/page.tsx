@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import StatusBadge from "@/components/admin/StatusBadge";
 import Modal from "@/components/admin/Modal";
 import ToastNotification from "@/components/admin/ToastNotification";
@@ -38,11 +38,7 @@ export default function DisputesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  useEffect(() => {
-    loadDisputes();
-  }, [filter]);
-
-  const loadDisputes = async () => {
+  const loadDisputes = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -55,7 +51,11 @@ export default function DisputesPage() {
       console.error("Error loading disputes:", error);
     }
     setLoading(false);
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadDisputes();
+  }, [loadDisputes]);
 
   const openResolveModal = (disputeId: string) => {
     setResolveModal({ isOpen: true, disputeId });
