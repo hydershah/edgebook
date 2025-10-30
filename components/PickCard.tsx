@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Lock, TrendingUp, ThumbsUp, ThumbsDown, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal, CheckCircle, Send, Trash2 } from 'lucide-react'
+import { Lock, TrendingUp, ThumbsUp, ThumbsDown, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal, CheckCircle, Send, Trash2, X, Link as LinkIcon } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useSession } from 'next-auth/react'
 import Modal from './Modal'
@@ -70,7 +70,7 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
   const [commentText, setCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [isLoadingComments, setIsLoadingComments] = useState(false)
-  const [isSharing, setIsSharing] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState(false)
 
   // Modal state
   const [modal, setModal] = useState<{
@@ -377,51 +377,40 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     setShowComments(!showComments)
   }
 
-  const handleShare = async () => {
-    if (isSharing) return
+  const handleShareToFacebook = () => {
+    const shareUrl = `${window.location.origin}/pick/${pick.id}`
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+    window.open(facebookUrl, '_blank', 'width=600,height=400')
+    setShowShareMenu(false)
+  }
 
-    setIsSharing(true)
-
+  const handleShareToTwitter = () => {
     const shareUrl = `${window.location.origin}/pick/${pick.id}`
     const shareText = `Check out this ${pick.sport} pick: ${pick.matchup}`
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+    window.open(twitterUrl, '_blank', 'width=600,height=400')
+    setShowShareMenu(false)
+  }
 
+  const handleCopyLink = async () => {
+    const shareUrl = `${window.location.origin}/pick/${pick.id}`
     try {
-      // Try Web Share API first (works on mobile and some desktop browsers)
-      if (navigator.share) {
-        await navigator.share({
-          title: `${pick.user.name}'s Pick - ${pick.matchup}`,
-          text: shareText,
-          url: shareUrl,
-        })
-        setModal({
-          isOpen: true,
-          title: 'Shared!',
-          message: 'Pick shared successfully.',
-          type: 'success',
-        })
-      } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(shareUrl)
-        setModal({
-          isOpen: true,
-          title: 'Link Copied!',
-          message: 'Pick link has been copied to your clipboard.',
-          type: 'success',
-        })
-      }
+      await navigator.clipboard.writeText(shareUrl)
+      setModal({
+        isOpen: true,
+        title: 'Link Copied!',
+        message: 'Pick link has been copied to your clipboard.',
+        type: 'success',
+      })
+      setShowShareMenu(false)
     } catch (error) {
-      // Only show error if it's not a user cancellation
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error('Error sharing pick:', error)
-        setModal({
-          isOpen: true,
-          title: 'Share Failed',
-          message: 'Unable to share pick. Please try again.',
-          type: 'error',
-        })
-      }
-    } finally {
-      setIsSharing(false)
+      console.error('Error copying link:', error)
+      setModal({
+        isOpen: true,
+        title: 'Copy Failed',
+        message: 'Unable to copy link. Please try again.',
+        type: 'error',
+      })
     }
   }
 
