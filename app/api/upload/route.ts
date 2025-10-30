@@ -3,17 +3,36 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
+import { validateS3Config } from '@/lib/env'
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION!,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-})
+// Validate S3 configuration at module load time
+const s3Config = validateS3Config()
+
+// Only initialize S3 client if properly configured
+const s3Client = s3Config.isConfigured
+  ? new S3Client({
+      region: s3Config.region!,
+      credentials: {
+        accessKeyId: s3Config.accessKeyId!,
+        secretAccessKey: s3Config.secretAccessKey!,
+      },
+    })
+  : null
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if S3 is configured
+    if (!s3Config.isConfigured || !s3Client) {
+      console.error('S3 upload service not configured:', s3Config.error)
+      return NextResponse.json(
+        {
+          error: 'File upload service is not configured',
+          details: 'The file upload feature requires AWS S3 configuration. Please contact support.',
+        },
+        { status: 503 }
+      )
+    }
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -43,14 +62,14 @@ export async function POST(request: NextRequest) {
 
     await s3Client.send(
       new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET!,
+        Bucket: s3Config.bucket!,
         Key: fileName,
         Body: buffer,
         ContentType: file.type,
       })
     )
 
-    const url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`
+    const url = `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com/${fileName}`
 
     return NextResponse.json({ url })
   } catch (error) {

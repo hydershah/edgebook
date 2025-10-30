@@ -5,9 +5,13 @@ import WelcomeEmail from '@/emails/WelcomeEmail';
 import PasswordResetEmail from '@/emails/PasswordResetEmail';
 import EmailChangeNotification from '@/emails/EmailChangeNotification';
 import EmailChangeVerification from '@/emails/EmailChangeVerification';
+import { validateEmailConfig } from '@/lib/env';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Validate email configuration at module load time
+const emailConfig = validateEmailConfig();
+
+// Initialize Resend client only if properly configured
+const resend = emailConfig.isConfigured ? new Resend(emailConfig.apiKey!) : null;
 
 // Email sender addresses
 const NOREPLY_EMAIL = 'noreply@edgebook.ai';
@@ -18,7 +22,16 @@ const HELLO_EMAIL = 'hello@edgebook.ai';
  * Sender: noreply@edgebook.ai (transactional)
  */
 export async function sendPasswordResetEmail(email: string, token: string, name?: string) {
-  const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+  // Check if email service is configured
+  if (!emailConfig.isConfigured || !resend) {
+    console.error('Email service not configured:', emailConfig.error);
+    return {
+      success: false,
+      error: 'Email service is not configured. Please contact support.',
+    };
+  }
+
+  const resetUrl = `${emailConfig.baseUrl}/auth/reset-password?token=${token}`;
 
   try {
     const emailHtml = await render(
@@ -52,6 +65,15 @@ export async function sendPasswordResetEmail(email: string, token: string, name?
  * Sender: hello@edgebook.ai (user-facing)
  */
 export async function sendWelcomeEmail(email: string, name: string) {
+  // Check if email service is configured
+  if (!emailConfig.isConfigured || !resend) {
+    console.error('Email service not configured:', emailConfig.error);
+    return {
+      success: false,
+      error: 'Email service is not configured. Please contact support.',
+    };
+  }
+
   try {
     const emailHtml = await render(
       WelcomeEmail({
@@ -83,7 +105,16 @@ export async function sendWelcomeEmail(email: string, name: string) {
  * Sender: noreply@edgebook.ai (transactional)
  */
 export async function sendVerificationEmail(email: string, token: string, name?: string) {
-  const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
+  // Check if email service is configured
+  if (!emailConfig.isConfigured || !resend) {
+    console.error('Email service not configured:', emailConfig.error);
+    return {
+      success: false,
+      error: 'Email service is not configured. Please contact support.',
+    };
+  }
+
+  const verificationUrl = `${emailConfig.baseUrl}/auth/verify-email?token=${token}`;
 
   try {
     const emailHtml = await render(
@@ -117,6 +148,15 @@ export async function sendVerificationEmail(email: string, token: string, name?:
  * Sender: noreply@edgebook.ai (transactional/security)
  */
 export async function sendEmailChangeNotification(oldEmail: string, newEmail: string, name?: string) {
+  // Check if email service is configured
+  if (!emailConfig.isConfigured || !resend) {
+    console.error('Email service not configured:', emailConfig.error);
+    return {
+      success: false,
+      error: 'Email service is not configured. Please contact support.',
+    };
+  }
+
   try {
     const emailHtml = await render(
       EmailChangeNotification({
@@ -150,7 +190,16 @@ export async function sendEmailChangeNotification(oldEmail: string, newEmail: st
  * Sender: noreply@edgebook.ai (transactional)
  */
 export async function sendEmailChangeConfirmation(newEmail: string, token: string, name?: string) {
-  const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
+  // Check if email service is configured
+  if (!emailConfig.isConfigured || !resend) {
+    console.error('Email service not configured:', emailConfig.error);
+    return {
+      success: false,
+      error: 'Email service is not configured. Please contact support.',
+    };
+  }
+
+  const verificationUrl = `${emailConfig.baseUrl}/auth/verify-email?token=${token}`;
 
   try {
     const emailHtml = await render(

@@ -3,15 +3,34 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
+import { validateStripeConfig } from '@/lib/env'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-})
+// Validate Stripe configuration at module load time
+const stripeConfig = validateStripeConfig()
+
+// Only initialize Stripe client if properly configured
+const stripe = stripeConfig.isConfigured
+  ? new Stripe(stripeConfig.secretKey!, {
+      apiVersion: '2023-10-16',
+    })
+  : null
 
 const PLATFORM_FEE_PERCENTAGE = 0.15 // 15%
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is configured
+    if (!stripeConfig.isConfigured || !stripe) {
+      console.error('Stripe payment service not configured:', stripeConfig.error)
+      return NextResponse.json(
+        {
+          error: 'Payment service is not configured',
+          details: 'The payment feature requires Stripe configuration. Please contact support.',
+        },
+        { status: 503 }
+      )
+    }
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

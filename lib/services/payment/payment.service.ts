@@ -17,6 +17,8 @@ enum TransactionType {
   REFUND = 'REFUND',
   PLATFORM_FEE = 'PLATFORM_FEE',
   ADJUSTMENT = 'ADJUSTMENT',
+  SELLER_PAYOUT_REVERSAL = 'SELLER_PAYOUT_REVERSAL',
+  PLATFORM_FEE_REVERSAL = 'PLATFORM_FEE_REVERSAL',
 }
 
 enum TransactionStatus {
@@ -286,20 +288,19 @@ export class PaymentService {
    * Calculate creator's available balance
    */
   async calculateCreatorBalance(userId: string): Promise<number> {
+    // Get all transactions that affect the creator's balance
     const transactions = await prisma.transaction.findMany({
       where: {
         userId,
         type: {
-          in: [TransactionType.PICK_SALE, TransactionType.SUBSCRIPTION_REVENUE],
+          in: [
+            TransactionType.PICK_SALE,
+            TransactionType.SUBSCRIPTION_REVENUE,
+            TransactionType.SELLER_PAYOUT_REVERSAL,  // Negative amounts (refunds)
+            TransactionType.PLATFORM_FEE_REVERSAL,    // Negative amounts (platform fee reversals)
+            TransactionType.ADJUSTMENT,               // Manual adjustments
+          ],
         },
-        status: TransactionStatus.COMPLETED,
-      },
-    });
-
-    const refundTransactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        type: TransactionType.REFUND,
         status: TransactionStatus.COMPLETED,
       },
     });
@@ -313,11 +314,11 @@ export class PaymentService {
       },
     });
 
-    const totalEarnings = transactions.reduce((sum, t) => sum + t.amount, 0);
-    const totalRefunds = refundTransactions.reduce((sum, t) => sum + t.amount, 0);
+    // Sum all transactions (positive earnings + negative reversals)
+    const totalBalance = transactions.reduce((sum, t) => sum + t.amount, 0);
     const totalPayouts = payouts.reduce((sum, p) => sum + p.amount, 0);
 
-    return totalEarnings - totalRefunds - totalPayouts;
+    return totalBalance - totalPayouts;
   }
 
   /**
@@ -478,7 +479,7 @@ export class PaymentService {
 
     // Create refund transactions
     await prisma.$transaction([
-      // Refund transaction for buyer
+      // Refund transaction for buyer (positive amount - they receive money back)
       prisma.transaction.create({
         data: {
           userId: purchase.userId,
@@ -490,28 +491,28 @@ export class PaymentService {
           description: `Refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
         },
       }),
-      // Refund transaction for creator (deduct only their earnings portion from balance)
+      // Seller payout reversal (negative amount - debiting seller's earnings)
       prisma.transaction.create({
         data: {
           userId: purchase.pick.userId,
-          type: TransactionType.REFUND,
-          amount: creatorEarningsRefund,
+          type: TransactionType.SELLER_PAYOUT_REVERSAL,
+          amount: -creatorEarningsRefund,
           status: TransactionStatus.COMPLETED,
           whopReferenceId: result.data?.id,
           referenceId: purchaseId,
-          description: `Refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
+          description: `Seller earnings reversal for refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
         },
       }),
-      // Reverse the platform fee
+      // Platform fee reversal (negative amount - reversing the platform fee)
       prisma.transaction.create({
         data: {
           userId: purchase.pick.userId,
-          type: TransactionType.PLATFORM_FEE,
+          type: TransactionType.PLATFORM_FEE_REVERSAL,
           amount: -platformFeeRefund,
           status: TransactionStatus.COMPLETED,
           whopReferenceId: result.data?.id,
           referenceId: purchaseId,
-          description: `Platform fee reversal: ${purchase.pick.matchup}`,
+          description: `Platform fee reversal for refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
         },
       }),
     ]);
