@@ -73,6 +73,24 @@ export class PaymentService {
    * Calculate platform fee and creator earnings
    */
   async calculateFees(amount: number, customFeePercent?: number) {
+    // Validate amount parameter
+    if (typeof amount !== 'number' || Number.isNaN(amount)) {
+      throw new RangeError('Amount must be a valid number');
+    }
+
+    if (!Number.isFinite(amount)) {
+      throw new RangeError('Amount must be a finite number');
+    }
+
+    if (amount <= 0) {
+      throw new RangeError('Amount must be greater than 0');
+    }
+
+    // Validate that amount is an integer (for cents)
+    if (!Number.isInteger(amount)) {
+      throw new RangeError('Amount must be an integer (value in cents)');
+    }
+
     const config = await this.getConfiguration();
     const feePercent = customFeePercent ?? config.platformFeePercent;
 
@@ -278,6 +296,14 @@ export class PaymentService {
       },
     });
 
+    const refundTransactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        type: TransactionType.REFUND,
+        status: TransactionStatus.COMPLETED,
+      },
+    });
+
     const payouts = await prisma.payout.findMany({
       where: {
         userId,
@@ -288,9 +314,10 @@ export class PaymentService {
     });
 
     const totalEarnings = transactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalRefunds = refundTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalPayouts = payouts.reduce((sum, p) => sum + p.amount, 0);
 
-    return totalEarnings - totalPayouts;
+    return totalEarnings - totalRefunds - totalPayouts;
   }
 
   /**
@@ -325,6 +352,15 @@ export class PaymentService {
    * Create a payout request
    */
   async createPayoutRequest(userId: string, amount: number) {
+    // Validate amount parameter
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      throw new Error('Invalid payout amount: must be a valid number');
+    }
+
+    if (amount <= 0) {
+      throw new Error('Invalid payout amount: must be greater than zero');
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -339,15 +375,37 @@ export class PaymentService {
       throw new Error('User does not have Whop account configured');
     }
 
-    // Initiate transfer with Whop
+    // Validate payout method and required payment details
+    if (!user.payoutMethod) {
+      throw new Error('Payout method not configured. Please set your preferred payout method.');
+    }
+
+    // Determine destination based on payout method and validate
+    let destination: string;
+    let method: 'crypto' | 'bank';
+
+    if (user.payoutMethod === 'CRYPTO') {
+      if (!user.cryptoWalletAddress || user.cryptoWalletAddress.trim() === '') {
+        throw new Error('Crypto wallet address is required for crypto payouts. Please configure your crypto wallet address.');
+      }
+      destination = user.cryptoWalletAddress.trim();
+      method = 'crypto';
+    } else {
+      // Assuming any non-CRYPTO method is bank-related
+      if (!user.bankAccountId || user.bankAccountId.trim() === '') {
+        throw new Error('Bank account ID is required for bank payouts. Please configure your bank account details.');
+      }
+      destination = user.bankAccountId.trim();
+      method = 'bank';
+    }
+
+    // Initiate transfer with Whop - only after all validations pass
     const result = await whopService.transferToUser({
       userId: user.whopUserId,
       amount,
       currency: 'USD',
-      method: user.payoutMethod === 'CRYPTO' ? 'crypto' : 'bank',
-      destination: user.payoutMethod === 'CRYPTO'
-        ? user.cryptoWalletAddress || ''
-        : user.bankAccountId || '',
+      method,
+      destination,
       description: `Creator payout for earnings`,
     });
 
@@ -413,18 +471,50 @@ export class PaymentService {
       },
     });
 
-    // Create refund transaction
-    await prisma.transaction.create({
-      data: {
-        userId: purchase.userId,
-        type: TransactionType.REFUND,
-        amount: refundAmount,
-        status: TransactionStatus.COMPLETED,
-        whopReferenceId: result.data?.id,
-        referenceId: purchaseId,
-        description: `Refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
-      },
-    });
+    // Calculate proportional refund amounts
+    const refundRatio = refundAmount / purchase.amount;
+    const platformFeeRefund = Math.round(purchase.platformFee * refundRatio);
+    const creatorEarningsRefund = refundAmount - platformFeeRefund;
+
+    // Create refund transactions
+    await prisma.$transaction([
+      // Refund transaction for buyer
+      prisma.transaction.create({
+        data: {
+          userId: purchase.userId,
+          type: TransactionType.REFUND,
+          amount: refundAmount,
+          status: TransactionStatus.COMPLETED,
+          whopReferenceId: result.data?.id,
+          referenceId: purchaseId,
+          description: `Refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
+        },
+      }),
+      // Refund transaction for creator (deduct only their earnings portion from balance)
+      prisma.transaction.create({
+        data: {
+          userId: purchase.pick.userId,
+          type: TransactionType.REFUND,
+          amount: creatorEarningsRefund,
+          status: TransactionStatus.COMPLETED,
+          whopReferenceId: result.data?.id,
+          referenceId: purchaseId,
+          description: `Refund: ${purchase.pick.matchup}${reason ? ` - ${reason}` : ''}`,
+        },
+      }),
+      // Reverse the platform fee
+      prisma.transaction.create({
+        data: {
+          userId: purchase.pick.userId,
+          type: TransactionType.PLATFORM_FEE,
+          amount: -platformFeeRefund,
+          status: TransactionStatus.COMPLETED,
+          whopReferenceId: result.data?.id,
+          referenceId: purchaseId,
+          description: `Platform fee reversal: ${purchase.pick.matchup}`,
+        },
+      }),
+    ]);
 
     return result;
   }

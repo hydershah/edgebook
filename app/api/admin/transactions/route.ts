@@ -13,12 +13,12 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   try {
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1);
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get("limit") || "20") || 20), 100);
     const type = searchParams.get("type");
     const status = searchParams.get("status");
     const userId = searchParams.get("userId");
-    const minAmount = parseFloat(searchParams.get("minAmount") || "0");
+    const minAmount = parseFloat(searchParams.get("minAmount") || "0") || 0;
     const suspicious = searchParams.get("suspicious") === "true";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";

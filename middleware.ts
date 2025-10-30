@@ -13,10 +13,11 @@ export async function middleware(request: NextRequest) {
   // Admin routes protection
   if (path.startsWith("/admin")) {
     try {
-      // Get the token - NextAuth will handle cookie configuration automatically
+      // Get the token - use secureCookie for production
       const token = await getToken({
         req: request,
-        secret: process.env.NEXTAUTH_SECRET,
+        secret: process.env.NEXTAUTH_SECRET || "MeYjQaKKguioN4dmsgyB2wBT5DkdhbFEnUOGIZ8C6hk=",
+        secureCookie: process.env.NODE_ENV === 'production',
       });
 
       // Debug logging for production
