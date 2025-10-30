@@ -85,57 +85,54 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-24 w-full items-center gap-4">
+        <div className="flex h-24 w-full items-center gap-6">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
             <Link href="/" className="flex items-center group">
               <Image
                 src="/logos/logo.svg"
                 alt="EdgeBook"
-                width={280}
-                height={75}
+                width={320}
+                height={85}
                 className="transition-transform duration-200 group-hover:scale-105"
                 priority
               />
             </Link>
           </div>
 
-          {/* Primary Navigation */}
-          <div className="flex items-center gap-4 flex-1">
-            <div className="hidden lg:flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1 shadow-sm">
+          {/* Center: Primary Navigation */}
+          <div className="hidden lg:flex items-center justify-center flex-1">
+            <div className="flex items-center gap-8">
               {navItems.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 text-sm font-semibold transition-all whitespace-nowrap ${
                     isActive(href)
-                      ? 'bg-primary/10 text-primary shadow-inner'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'text-primary'
+                      : 'text-gray-700 hover:text-gray-900'
                   }`}
                 >
-                  <Icon size={18} />
+                  <Icon size={18} className="flex-shrink-0" />
                   <span>{label}</span>
                 </Link>
               ))}
             </div>
-
-            {/* Global Search */}
-            <div className="hidden md:flex flex-1 max-w-md mx-auto">
-              <UserSearch className="w-full" onUserSelect={handleUserSelect} />
-            </div>
           </div>
 
-          {/* Actions */}
+          {/* Right: Search + Actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Global Search */}
+            <div className="hidden lg:flex" style={{ width: '240px' }}>
+              <UserSearch 
+                className="w-full" 
+                onUserSelect={handleUserSelect}
+                placeholder="Search for experts or friends…"
+              />
+            </div>
+
             {session?.user ? (
               <>
-                <button
-                  type="button"
-                  className="hidden rounded-full border border-gray-200 bg-white p-2 text-gray-500 transition hover:text-primary md:flex"
-                  aria-label="Notifications"
-                >
-                  <Bell size={20} />
-                </button>
                 <Link
                   href="/createpick"
                   className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md md:inline-flex"
@@ -143,6 +140,13 @@ export default function Navbar() {
                   <PlusSquare size={18} />
                   <span>Create Pick</span>
                 </Link>
+                <button
+                  type="button"
+                  className="hidden rounded-full border border-gray-200 bg-white p-2 text-gray-500 transition hover:text-primary md:flex"
+                  aria-label="Notifications"
+                >
+                  <Bell size={20} />
+                </button>
                 <div className="relative" ref={profileMenuRef}>
                   <button
                     type="button"
@@ -154,13 +158,10 @@ export default function Navbar() {
                     <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-primary-dark text-sm font-semibold text-white">
                       {avatarInitial}
                     </div>
-                    <div className="hidden lg:flex min-w-[140px] flex-col leading-tight">
-                      <span className="truncate text-sm font-semibold text-gray-900">{session.user.name}</span>
-                      {session.user.email && (
-                        <span className="truncate text-xs text-gray-500">{session.user.email}</span>
-                      )}
+                    <div className="hidden lg:flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-900">{session.user.name}</span>
+                      <ChevronDown size={16} className="text-gray-400" />
                     </div>
-                    <ChevronDown size={16} className="hidden text-gray-400 lg:block" />
                   </button>
 
                   {isProfileMenuOpen && (
@@ -233,11 +234,12 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Search */}
-        <div className="pb-3 md:hidden">
+        <div className="pb-3 lg:hidden">
           <UserSearch
             variant="mobile"
             className="mt-1"
             onUserSelect={handleUserSelect}
+            placeholder="Search for experts or friends…"
           />
         </div>
 

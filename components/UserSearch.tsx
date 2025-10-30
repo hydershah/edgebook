@@ -18,12 +18,13 @@ interface UserSearchProps {
   onUserSelect?: (userId: string) => void
   className?: string
   variant?: 'desktop' | 'mobile'
+  placeholder?: string
 }
 
 const MIN_QUERY_LENGTH = 2
 const MAX_VISIBLE_RESULTS = 6
 
-export default function UserSearch({ className = '', variant = 'desktop', onUserSelect }: UserSearchProps) {
+export default function UserSearch({ className = '', variant = 'desktop', onUserSelect, placeholder = 'Search analysts or creators...' }: UserSearchProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
@@ -195,7 +196,7 @@ export default function UserSearch({ className = '', variant = 'desktop', onUser
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search analysts or creators..."
+          placeholder={placeholder}
           className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
           aria-label="Search users"
         />

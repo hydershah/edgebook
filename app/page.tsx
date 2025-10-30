@@ -191,79 +191,50 @@ export default function Home() {
   return (
     <div className="bg-white text-gray-900">
       <ComplianceConsent />
-      <section className="border-b border-gray-200 bg-gradient-to-br from-white via-background to-white/70">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-11 lg:px-8 lg:py-24">
-          <div className="lg:col-span-6">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              The social home for disciplined analysts
-            </p>
-            <h1 className="mt-6 text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
-              Real records. Real community. Real edge.
+      <section className="border-b border-gray-200 bg-gradient-to-br from-slate-50 via-indigo-50/30 to-emerald-50/20">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
+              Think you&rsquo;ve got the edge? Prove it!
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
-              EdgeBook lets you showcase every pick, surface your performance by sport, and sell premium insights to
-              the community who cares about credibility. Build a public track record, grow your audience, and manage earnings
-              without the guesswork.
+            <p className="mx-auto mt-14 max-w-3xl text-2xl leading-relaxed text-gray-600">
+              Showcase your picks, track results, and earn from your insight
             </p>
-            <ul className="mt-8 space-y-3 text-sm sm:text-base">
-              <li className="flex items-start gap-3 text-gray-700">
-                <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
-                <span>
-                  Every profile highlights accuracy rate, win/loss record, unit performance, sport splits, and lifetime
-                  earnings.
-                </span>
-              </li>
-              <li className="flex items-start gap-3 text-gray-700">
-                <CreditCard className="mt-0.5 h-5 w-5 text-primary" />
-                <span>
-                  Offer free previews or pay-per-view picks with transparent pricing, instant unlocks, and transaction
-                  receipts.
-                </span>
-              </li>
-              <li className="flex items-start gap-3 text-gray-700">
-                <Users className="mt-0.5 h-5 w-5 text-primary" />
-                <span>
-                  Connect your socials, grow followers inside EdgeBook, and let serious analysts subscribe to your feed.
-                </span>
-              </li>
-            </ul>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Link
                 href="/auth/signup"
-                className="inline-flex items-center justify-center rounded-xl bg-primary px-7 py-3 text-base font-semibold text-white shadow-md transition hover:bg-primary-dark hover:shadow-lg"
+                className="inline-flex items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white shadow-md transition hover:bg-primary-dark hover:shadow-lg"
               >
-                Create your profile
+                Start Your Free Profile
               </Link>
               <Link
                 href="/feed"
-                className="inline-flex items-center justify-center rounded-xl border border-gray-300 px-7 py-3 text-base font-semibold text-gray-800 shadow-sm transition hover:border-primary hover:text-primary"
+                className="text-base font-semibold text-gray-700 transition hover:text-primary"
               >
-                Explore public picks
+                Browse Public Picks
               </Link>
             </div>
-            <p className="mt-4 text-sm text-gray-500">
-              Free to join • No credit card required • Cancel anytime
-            </p>
           </div>
 
-          <div className="lg:col-span-5">
+          {/* Profile Card - Horizontal Layout */}
+          <div className="mt-40">
             <div
               ref={cardRef}
-              className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white/90 p-8 shadow-2xl shadow-primary/10 ring-1 ring-black/5 backdrop-blur transition-all duration-700 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_35px_90px_-25px_rgba(79,70,229,0.45)]"
+              className="relative mx-auto max-w-3xl overflow-hidden rounded-xl border border-gray-200 bg-white/90 p-5 shadow-lg shadow-primary/10 ring-1 ring-black/5 backdrop-blur transition-all duration-700 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_15px_45px_-10px_rgba(79,70,229,0.3)]"
             >
-              <div className="pointer-events-none absolute -inset-14 opacity-70">
+              <div className="pointer-events-none absolute -inset-8 opacity-50">
                 <ProfileCardGlow />
               </div>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-emerald-200/35 opacity-70 mix-blend-screen" />
-              <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/30" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-emerald-200/15 opacity-50 mix-blend-screen" />
+              <div className="pointer-events-none absolute inset-0 rounded-xl border border-white/30" />
               <div className="relative z-10">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Public profile snapshot</p>
-                    <h3 className="mt-1 text-xl font-semibold text-gray-900">Taylor Morgan</h3>
-                    <p className="text-sm text-gray-500">NBA &amp; MLB specialist</p>
+                    <h3 className="mt-1 text-base font-semibold text-gray-900">Taylor Morgan</h3>
+                    <p className="text-xs text-gray-500">NBA &amp; MLB specialist</p>
                   </div>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                     <AnimatedNumber
                       value={62}
                       suffix="% hit rate"
@@ -274,35 +245,33 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="mt-8 grid grid-cols-2 gap-4">
-                  <div className="rounded-2xl bg-background p-4">
+                <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                  <div className="rounded-lg bg-background p-2.5">
                     <p className="text-xs font-medium uppercase text-gray-500">Total picks</p>
-                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
                       <AnimatedNumber value={248} isActive={isCardActive} delay={120} />
                     </p>
                     <p className="text-xs text-gray-500">82 premium • 166 free</p>
                   </div>
-                  <div className="rounded-2xl bg-background p-4">
+                  <div className="rounded-lg bg-background p-2.5">
                     <p className="text-xs font-medium uppercase text-gray-500">Return on units</p>
-                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
                       <AnimatedNumber value={38.6} decimals={1} prefix="+" isActive={isCardActive} delay={220} />
                     </p>
                     <p className="text-xs text-gray-500">
-                      Best run:{' '}
+                      Best run: +
                       <AnimatedNumber
                         value={12}
-                        prefix="+"
                         suffix="u"
                         isActive={isCardActive}
                         delay={320}
                         formatter={(val) => Math.round(val).toString()}
-                      />{' '}
-                      last 30 days
+                      />
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-background p-4">
+                  <div className="rounded-lg bg-background p-2.5">
                     <p className="text-xs font-medium uppercase text-gray-500">Followers</p>
-                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
                       <AnimatedNumber
                         value={4832}
                         isActive={isCardActive}
@@ -311,7 +280,7 @@ export default function Home() {
                       />
                     </p>
                     <p className="text-xs text-gray-500">
-                      Avg unlock rate{' '}
+                      Avg unlock{' '}
                       <AnimatedNumber
                         value={41}
                         suffix="%"
@@ -321,9 +290,9 @@ export default function Home() {
                       />
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-background p-4">
+                  <div className="rounded-lg bg-background p-2.5">
                     <p className="text-xs font-medium uppercase text-gray-500">Sport breakdown</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-900">
+                    <p className="mt-0.5 text-sm font-semibold text-gray-900">
                       NBA{' '}
                       <AnimatedNumber
                         value={58}
@@ -331,8 +300,10 @@ export default function Home() {
                         isActive={isCardActive}
                         delay={300}
                         formatter={(val) => Math.round(val).toString()}
-                      />{' '}
-                      • MLB{' '}
+                      />
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      MLB{' '}
                       <AnimatedNumber
                         value={65}
                         suffix="%"
@@ -349,16 +320,15 @@ export default function Home() {
                         formatter={(val) => Math.round(val).toString()}
                       />
                     </p>
-                    <p className="text-xs text-gray-500">Updated after every result</p>
                   </div>
                 </div>
 
-                <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-4">
+                <div className="mt-4 rounded-lg border border-gray-200 bg-white p-2.5">
                   <p className="text-xs font-semibold uppercase text-gray-500">Latest premium picks</p>
-                  <div className="mt-3 space-y-3 text-sm text-gray-600">
+                  <div className="mt-2 space-y-1.5 text-sm text-gray-600">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-900">Dodgers @ Braves — Moneyline</span>
-                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">$11 unlock</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">$11 unlock</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-900">Timberwolves +3.5 — Spread</span>
@@ -371,14 +341,14 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
+                <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
                   <span>Transaction history &amp; wallet balance synced in real time</span>
                   <Link
                     href="/profile"
                     className="group inline-flex items-center gap-1 text-primary transition hover:text-primary-dark"
                   >
                     View profile
-                    <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" />
+                    <ArrowRight className="h-3 w-3 transition-transform duration-500 group-hover:translate-x-1" />
                   </Link>
                 </div>
               </div>
@@ -390,13 +360,11 @@ export default function Home() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">Why analysts rely on EdgeBook</p>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Built around the way serious handicappers actually work
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Built for sports fans who predict outcomes
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Whether you&apos;re publishing picks or paying to unlock them, EdgeBook keeps every action verifiable and
-              easy to follow.
+              Post picks, share your card, prove your record, sell your insights.
             </p>
           </div>
 
@@ -407,7 +375,7 @@ export default function Home() {
               </div>
               <h3 className="mt-6 text-xl font-semibold text-gray-900">Profiles built on proof</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Highlight your bio, socials, and verified stats so members can judge credibility at a glance.
+                Build trust instantly. Show your bio, socials, and verified stats so followers know your record is real.
               </p>
             </div>
 
@@ -415,9 +383,9 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Target className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Prediction posts that convert</h3>
+              <h3 className="mt-6 text-xl font-semibold text-gray-900">Prediction posts that sell</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Offer free previews, blur premium analysis, attach receipts, and track performance by sport category.
+                Post free teasers or premium picks with proof of performance. Every result can be tracked for public record.
               </p>
             </div>
 
@@ -425,10 +393,9 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Wallet className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Wallet &amp; payouts under control</h3>
+              <h3 className="mt-6 text-xl font-semibold text-gray-900">Payouts Simplified</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Members top up balances, confirm purchases, and review every transaction or viewing history from one
-                ledger.
+                Track earnings, create both subscriptions and per pick paywalls. All from one transparent dashboard.
               </p>
             </div>
 
@@ -436,9 +403,9 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <LineChart className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Discovery that feels familiar</h3>
+              <h3 className="mt-6 text-xl font-semibold text-gray-900">Smart discovery for fans</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Scroll feeds by following, global, or algorithmic views, then filter by sport, pricing, or top performers.
+                Get discovered by followers, sort by sport or top earners, and rise up the leaderboard with every winning pick.
               </p>
             </div>
           </div>
@@ -447,159 +414,76 @@ export default function Home() {
 
       <section className="border-t border-b border-gray-200 bg-background py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">Your workflow</p>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Everything you need from signup to settled bets
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Post. Prove. Profit
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              No mock screenshots or vague promises—here&apos;s what you can manage inside EdgeBook on day one.
+              Three steps from talking picks to earning from them.
             </p>
           </div>
 
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <span className="text-xs font-semibold uppercase tracking-wide text-primary">Step 1</span>
-              <h3 className="mt-3 text-xl font-semibold text-gray-900">Standout profile</h3>
+              <h3 className="mt-3 text-xl font-semibold text-gray-900">Build your edge</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Upload a headshot, write a sharp bio, connect Instagram, YouTube, and Discord, and let your follower
-                metrics speak for themselves.
+                Upload your photo, craft your bio, and connect socials. Turn your record into your reputation.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-gray-600">
-                <li>• Accuracy, win/loss, and units auto-update</li>
-                <li>• Sport category performance at a glance</li>
-                <li>• Earnings and spending history for transparency</li>
+                <li>• Win/loss tracking</li>
+                <li>• Performance by sport</li>
+                <li>• Verified credibility from day one</li>
               </ul>
             </div>
 
             <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <span className="text-xs font-semibold uppercase tracking-wide text-primary">Step 2</span>
-              <h3 className="mt-3 text-xl font-semibold text-gray-900">Publish the goods</h3>
+              <h3 className="mt-3 text-xl font-semibold text-gray-900">Share your picks</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Post predictions with odds, stakes, and reasoning. Sell premium analysis or keep posts free for reach—the
-                unlock flow is handled for you.
+                Post predictions with odds, notes, and confidence levels. Offer free insights or premium picks that unlock instantly when purchased.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-gray-600">
-                <li>• Blurred previews until purchase is confirmed</li>
-                <li>• Attach screenshots, models, or video breakdowns</li>
-                <li>• Automatic result grading: pending, win, loss, push</li>
+                <li>• Blurred previews for premium content</li>
+                <li>• Upload models, screenshots, or clips</li>
+                <li>• Grade your results (win/loss/push)</li>
               </ul>
             </div>
 
             <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <span className="text-xs font-semibold uppercase tracking-wide text-primary">Step 3</span>
-              <h3 className="mt-3 text-xl font-semibold text-gray-900">Get paid responsibly</h3>
+              <h3 className="mt-3 text-xl font-semibold text-gray-900">Get paid for your reputation</h3>
               <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Top up wallets securely, trigger payouts on your schedule, and keep every ledger ready for tax season and
-                compliance.
+                Earn directly from your audience through a transparent platform and payout system.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-gray-600">
-                <li>• Stripe-backed payment rails with PayPal support</li>
-                <li>• Dispute handling and optional refund workflows</li>
-                <li>• Exportable transaction history and receipts</li>
+                <li>• Instant payment support</li>
+                <li>• Manage and track earnings</li>
+                <li>• Download all transactions</li>
               </ul>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-1">
-              <p className="text-sm font-semibold uppercase tracking-wide text-primary">Proof in numbers</p>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Data that keeps analysts confident
-              </h2>
-              <p className="mt-4 text-lg text-gray-600">
-                EdgeBook tracks the metrics that actually matter so creators can demonstrate their edge and buyers know
-                what they&apos;re paying for.
+          <div className="mt-16 flex justify-center">
+            <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-gray-50 px-12 py-8 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
+              <p className="relative text-center text-2xl font-bold text-gray-900">
+                It&rsquo;s <span className="text-primary">YOUR</span> edge <span className="mx-3 text-gray-400">|</span> we make it <span className="text-primary">official</span>
               </p>
             </div>
-            <div className="lg:col-span-2">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Accuracy</p>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">Series, season, lifetime</p>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                    Break down your win rate by league, bet type, or time period. Pending, won, lost, and void statuses
-                    update automatically.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Bankroll</p>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">Units &amp; ROI tracking</p>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                    Visualize performance against units risked. Watch ROI trends to understand streaks and long-term
-                    profitability.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Community</p>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">Followers &amp; unlocks</p>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                    Track who follows, purchases, and re-ups so you can reward loyalty and run targeted promotions.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Recognition</p>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">Leaderboards &amp; awards</p>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                    Seasonal leaderboards spotlight trending analysts by accuracy, volume, and earnings to boost organic
-                    discovery.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-b border-gray-200 bg-white py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-10 md:grid-cols-2">
-            <div className="rounded-3xl border border-gray-200 bg-background p-8 shadow-sm">
-              <div className="flex items-center gap-3">
-                <Trophy className="h-6 w-6 text-primary" />
-                <p className="text-sm font-semibold uppercase tracking-wide text-primary">From the community</p>
-              </div>
-              <blockquote className="mt-6 text-lg leading-relaxed text-gray-700">
-                &ldquo;I stopped DM&rsquo;ing my slips because EdgeBook shows the full story—profit, loss, and sport-by-sport splits.
-                The unlocks pay out weekly and I don&rsquo;t have to babysit spreadsheets anymore.&rdquo;
-              </blockquote>
-              <div className="mt-6 text-sm text-gray-500">
-                <p className="font-semibold text-gray-800">Jordan P. — NHL &amp; MLB handicapper</p>
-                <p>4.4k followers • 58% lifetime accuracy • Member since 2023</p>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-gray-200 bg-background p-8 shadow-sm">
-              <div className="flex items-center gap-3">
-                <BarChart3 className="h-6 w-6 text-primary" />
-                <p className="text-sm font-semibold uppercase tracking-wide text-primary">Buyer perspective</p>
-              </div>
-              <blockquote className="mt-6 text-lg leading-relaxed text-gray-700">
-                &ldquo;I only pay for predictions when the numbers check out. EdgeBook makes it obvious: I can see unit
-                history, accuracy by sport, and whether the creator actually beats the closing line.&rdquo;
-              </blockquote>
-              <div className="mt-6 text-sm text-gray-500">
-                <p className="font-semibold text-gray-800">Melissa R. — Verified subscriber</p>
-                <p>$240 lifetime spend • 19 paid creators followed • Daily notification digest</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className="bg-background py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">Compliance &amp; trust</p>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Responsible infrastructure from day one
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Built on trust.
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              EdgeBook operates with licensing, age verification, and responsible gaming controls in mind so creators and
-              buyers stay protected.
+              EdgeBook runs on transparency, security, and fair play, so creators and fans can focus on what matters: the picks.
             </p>
           </div>
 
@@ -607,10 +491,9 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <ShieldCheck className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Age &amp; identity checks</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Age</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  18+ verification, optional ID upload, and regional controls keep the platform compliant with
-                  jurisdictional rules.
+                  18+ verification to ensure safeguards are in place. Keeping the community credible and compliant
                 </p>
               </div>
             </div>
@@ -618,10 +501,9 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <CreditCard className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Payment transparency</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Transparent payments</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Every top-up, unlock, and payout is receipted. EdgeBook fees are disclosed up front with clear dispute
-                  flows.
+                  Every top-up, unlock, and payout is tracked in your dashboard with zero hidden fees and instant digital receipts.
                 </p>
               </div>
             </div>
@@ -629,10 +511,9 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <Globe className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Territory aware</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Territory protection</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Support for geo restrictions, privacy requests, and data exports keeps us ready for GDPR, CCPA, and
-                  local regulations.
+                  EdgeBook adapts to your region, respecting privacy laws while keeping your data under your control.
                 </p>
               </div>
             </div>
@@ -640,51 +521,43 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <Users className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Responsible gaming toolkit</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Responsible gaming tools</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Self-exclusion, spending limits, and direct links to support resources help members stay in control of
-                  their bankroll.
+                  EdgeBook is built to help you make smart decisions by giving you transparency in all public opinion.
                 </p>
               </div>
             </div>
           </div>
-
-          <p className="mt-10 text-center text-xs text-gray-500">
-            EdgeBook is not a sportsbook. For entertainment and informational purposes only. Winnings are never
-            guaranteed.
-          </p>
         </div>
       </section>
 
       <section className="bg-gray-900 py-20 text-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl backdrop-blur">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to build your EdgeBook presence?</h2>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Join the community where picks become proof.
+            </h2>
             <p className="mt-4 text-lg text-white/80">
-              Sign up today, import your past results, and start sharing predictions with the community who cares about the
-              numbers.
+              Create your profile, post your first picks, and let your record do the talking.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link
                 href="/auth/signup"
                 className="inline-flex items-center justify-center rounded-xl bg-primary px-8 py-3 text-base font-semibold text-white shadow-md transition hover:bg-primary-dark hover:shadow-lg"
               >
-                Launch my profile
+                Start Free Today
               </Link>
               <Link
-                href="/auth/login"
+                href="/auth/signin"
                 className="inline-flex items-center justify-center rounded-xl border border-white/30 px-8 py-3 text-base font-semibold text-white transition hover:border-white"
               >
-                I already have an account
+                Sign In to EdgeBook
               </Link>
             </div>
-            <p className="mt-6 text-xs text-white/60">
-              Need a closer look? Join our next live walkthrough or request onboarding support after signup.
+            <p className="mt-6 text-sm text-white/60">
+              18+ only. For entertainment and educational use.
             </p>
           </div>
-          <p className="mt-10 text-center text-xs text-white/50">
-            Need help? Call 1-800-522-4700. Must be 18+ (or 21+ where required). Please play responsibly.
-          </p>
         </div>
       </section>
     </div>
