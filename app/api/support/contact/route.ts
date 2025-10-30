@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const SUPPORT_EMAIL = 'support@edgebook.ai'
 
 export async function POST(request: NextRequest) {
@@ -220,6 +218,33 @@ export async function POST(request: NextRequest) {
         </body>
       </html>
     `
+
+    // Check if Resend API key is configured
+    if (!process.env.RESEND_API_KEY) {
+      // Log the support request for manual processing
+      console.log('Support request received (email service not configured):')
+      console.log({
+        from: `${name} <${email}>`,
+        category: categoryLabel,
+        subject,
+        message,
+        timestamp: new Date().toISOString()
+      })
+
+      // Return success even without sending emails
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Your message has been received. We will contact you soon.',
+          note: 'Email notifications are currently disabled.'
+        },
+        { status: 200 }
+      )
+    }
+
+    // Initialize Resend only if API key is available
+    const { Resend } = await import('resend')
+    const resend = new Resend(process.env.RESEND_API_KEY)
 
     // Send both emails
     const [supportResult, confirmationResult] = await Promise.allSettled([
