@@ -5,13 +5,14 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Home, TrendingUp, PlusSquare, Brain, Menu, X, Bell, ChevronDown } from 'lucide-react'
+import { Home, TrendingUp, PlusSquare, Menu, X, Bell, ChevronDown } from 'lucide-react'
 import UserSearch from '@/components/UserSearch'
 
 type NavItem = {
   href: string
   label: string
-  icon: typeof Home
+  icon?: typeof Home
+  imageSrc?: string
 }
 
 export default function Navbar() {
@@ -28,7 +29,7 @@ export default function Navbar() {
     () => [
       { href: '/feed', label: 'Feed', icon: Home },
       { href: '/trending', label: 'Trending', icon: TrendingUp },
-      { href: '/aianalyst', label: 'AI Analyst', icon: Brain },
+      { href: '/aianalyst', label: 'GameEdge AI', imageSrc: '/gameedge.svg' },
     ],
     [],
   )
@@ -103,7 +104,7 @@ export default function Navbar() {
           {/* Center: Primary Navigation */}
           <div className="hidden lg:flex items-center justify-center flex-1">
             <div className="flex items-center gap-8">
-              {navItems.map(({ href, label, icon: Icon }) => (
+              {navItems.map(({ href, label, icon: Icon, imageSrc }) => (
                 <Link
                   key={href}
                   href={href}
@@ -113,7 +114,11 @@ export default function Navbar() {
                       : 'text-gray-700 hover:text-gray-900'
                   }`}
                 >
-                  <Icon size={18} className="flex-shrink-0" />
+                  {imageSrc ? (
+                    <Image src={imageSrc} alt={label} width={18} height={18} className="flex-shrink-0" />
+                  ) : Icon ? (
+                    <Icon size={18} className="flex-shrink-0" />
+                  ) : null}
                   <span>{label}</span>
                 </Link>
               ))}
@@ -247,7 +252,7 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden">
             <div className="space-y-2 border-t border-gray-200 py-4">
-              {navItems.map(({ href, label, icon: Icon }) => (
+              {navItems.map(({ href, label, icon: Icon, imageSrc }) => (
                 <Link
                   key={href}
                   href={href}
@@ -258,7 +263,11 @@ export default function Navbar() {
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Icon size={18} />
+                  {imageSrc ? (
+                    <Image src={imageSrc} alt={label} width={18} height={18} />
+                  ) : Icon ? (
+                    <Icon size={18} />
+                  ) : null}
                   <span>{label}</span>
                 </Link>
               ))}
