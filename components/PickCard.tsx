@@ -70,6 +70,7 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
   const [commentText, setCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
 
   // Modal state
   const [modal, setModal] = useState<{
@@ -376,218 +377,268 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     setShowComments(!showComments)
   }
 
+  const handleShare = async () => {
+    if (isSharing) return
+
+    setIsSharing(true)
+
+    const shareUrl = `${window.location.origin}/pick/${pick.id}`
+    const shareText = `Check out this ${pick.sport} pick: ${pick.matchup}`
+
+    try {
+      // Try Web Share API first (works on mobile and some desktop browsers)
+      if (navigator.share) {
+        await navigator.share({
+          title: `${pick.user.name}'s Pick - ${pick.matchup}`,
+          text: shareText,
+          url: shareUrl,
+        })
+        setModal({
+          isOpen: true,
+          title: 'Shared!',
+          message: 'Pick shared successfully.',
+          type: 'success',
+        })
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl)
+        setModal({
+          isOpen: true,
+          title: 'Link Copied!',
+          message: 'Pick link has been copied to your clipboard.',
+          type: 'success',
+        })
+      }
+    } catch (error) {
+      // Only show error if it's not a user cancellation
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Error sharing pick:', error)
+        setModal({
+          isOpen: true,
+          title: 'Share Failed',
+          message: 'Unable to share pick. Please try again.',
+          type: 'error',
+        })
+      }
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
   return (
-    <article className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden group">
+    <article className="bg-white border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
       {/* Header */}
-      <div className="p-4 sm:p-6">
-        <div className="flex items-start justify-between mb-4">
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start justify-between mb-3">
           <Link
             href={`/profile/${pick.user.id}`}
-            className="flex items-center space-x-3 group/user hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-3 group/user hover:opacity-80 transition-opacity flex-1 min-w-0"
           >
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center ring-2 ring-white shadow-md">
-                <span className="text-white font-bold text-lg">
+            <div className="relative flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-base">
                   {pick.user.name?.[0]?.toUpperCase() || '?'}
                 </span>
               </div>
               {/* Verified badge */}
               <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5">
-                <CheckCircle className="text-white" size={14} />
+                <CheckCircle className="text-white" size={12} />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2">
-                <p className="font-bold text-gray-900 truncate">
+              <div className="flex items-center space-x-1.5 flex-wrap">
+                <p className="font-semibold text-gray-900 truncate text-[15px]">
                   {pick.user.name || 'Anonymous'}
                 </p>
+                <span className="text-gray-400">·</span>
+                <p className="text-sm text-gray-500 flex-shrink-0">
+                  {formatDistanceToNow(new Date(pick.createdAt), { addSuffix: true })}
+                </p>
               </div>
-              <p className="text-sm text-gray-500">
-                {formatDistanceToNow(new Date(pick.createdAt), { addSuffix: true })}
-              </p>
+              <div className="flex items-center space-x-2 mt-0.5 flex-wrap gap-1">
+                <span className="text-xs text-gray-500 font-medium">
+                  {pick.sport}
+                </span>
+                <span className="text-gray-300">·</span>
+                <span className="text-xs text-gray-500">
+                  {pick.pickType}
+                </span>
+                <span className="text-gray-300">·</span>
+                <span className="text-xs font-semibold text-blue-600 flex items-center gap-0.5">
+                  <TrendingUp size={11} />
+                  {pick.confidence}U
+                </span>
+              </div>
             </div>
           </Link>
 
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <MoreHorizontal size={20} className="text-gray-500" />
-          </button>
+          <div className="flex items-center space-x-1 ml-2">
+            {pick.isPremium && (
+              <div className="flex items-center space-x-1 px-2 py-1 bg-green-600 text-white rounded text-xs font-semibold">
+                <Lock size={11} />
+                <span>${pick.price}</span>
+              </div>
+            )}
+            <button className="p-1.5 hover:bg-gray-200 rounded-full transition-colors">
+              <MoreHorizontal size={18} className="text-gray-500" />
+            </button>
+          </div>
         </div>
 
-        {/* Tags & Status */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="px-3 py-1.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-full text-xs font-semibold shadow-sm">
-            {pick.sport}
-          </span>
-          <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-            {pick.pickType}
-          </span>
-          <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium flex items-center gap-1 border border-blue-200">
-            <TrendingUp size={12} />
-            <span className="font-semibold">{pick.confidence}U</span>
-          </span>
-          <span className={`px-3 py-1.5 rounded-full text-xs font-medium border ${status.bg} ${status.text} ${status.border}`}>
+        {/* Status Badge - More subtle placement */}
+        <div className="mb-3">
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${status.bg} ${status.text}`}>
             {status.label}
           </span>
-          {pick.isPremium && (
-            <span className="px-3 py-1.5 bg-gradient-to-r from-primary to-green-700 text-white rounded-full text-xs font-semibold flex items-center gap-1 shadow-sm">
-              <Lock size={12} />
-              ${pick.price}
-            </span>
-          )}
         </div>
 
         {/* Matchup */}
-        <h3 className="font-bold text-xl text-gray-900 mb-3 leading-tight">
+        <h3 className="font-semibold text-[17px] text-gray-900 mb-2.5 leading-snug">
           {pick.matchup}
         </h3>
 
         {/* Content */}
         {pick.isPremium && !isUnlocked && !isOwnPick ? (
-          <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 border-2 border-green-200">
-            <div className="relative p-8 text-center">
-              <div className="mb-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-green-700 rounded-full shadow-lg mb-3">
-                  <Lock className="text-white" size={28} />
-                </div>
+          <div className="relative rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 p-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-600 rounded-full mb-3">
+                <Lock className="text-white" size={20} />
               </div>
-              <h4 className="font-bold text-gray-900 text-lg mb-2">
-                Premium Pick
-              </h4>
-              <p className="text-gray-600 text-sm mb-4 max-w-xs mx-auto">
-                Unlock this expert analysis and prediction
+              <p className="text-gray-700 text-sm font-medium mb-4">
+                Unlock to view full analysis
               </p>
               <button
                 onClick={handleUnlock}
                 disabled={isUnlocking}
-                className="bg-gradient-to-r from-primary to-green-700 hover:from-primary-dark hover:to-green-800 text-white font-bold px-8 py-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {isUnlocking ? 'Unlocking...' : `Unlock for $${pick.price}`}
               </button>
-              <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <Eye size={14} />
-                  <span>{views} views</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Lock size={14} />
-                  <span>{unlocks} unlocked</span>
-                </div>
+              <div className="mt-3 flex items-center justify-center space-x-3 text-xs text-gray-500">
+                <span>{unlocks} unlocked</span>
               </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div>
             {pick.isPremium && isUnlocked && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3 flex items-center space-x-2">
-                <CheckCircle className="text-green-600" size={18} />
-                <span className="text-sm font-medium text-green-800">You&apos;ve unlocked this premium pick</span>
+              <div className="bg-green-50 rounded-md p-2 mb-3 flex items-center space-x-2">
+                <CheckCircle className="text-green-600 flex-shrink-0" size={16} />
+                <span className="text-xs font-medium text-green-800">Premium unlocked</span>
               </div>
             )}
-            <p className="text-gray-700 leading-relaxed text-[15px]">
+            <p className="text-gray-800 leading-relaxed text-[15px]">
               {pick.details}
             </p>
             {pick.odds && (
-              <div className="inline-flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                <span className="text-sm font-semibold text-gray-700">Odds:</span>
-                <span className="text-sm font-bold text-primary">{pick.odds}</span>
+              <div className="mt-3 inline-flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                <span className="text-xs font-medium text-gray-600">Odds:</span>
+                <span className="text-sm font-semibold text-gray-900">{pick.odds}</span>
               </div>
             )}
           </div>
         )}
 
         {/* Game Date & Lock Status */}
-        <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-          <p className="text-sm text-gray-500 flex items-center space-x-2">
-            <span className="font-medium">Game Date:</span>
-            <span>{new Date(pick.gameDate).toLocaleDateString('en-US', {
+        <div className="mt-4 pt-3 space-y-2">
+          <p className="text-xs text-gray-500">
+            {new Date(pick.gameDate).toLocaleDateString('en-US', {
               weekday: 'short',
               month: 'short',
               day: 'numeric',
               year: 'numeric'
-            })}</span>
+            })}
+            {(pick.isLocked || timeUntilLock) && (
+              <>
+                {' · '}
+                {pick.isLocked ? (
+                  <span className="text-red-600 font-medium">Locked</span>
+                ) : (
+                  <span className="text-yellow-700 font-medium">{timeUntilLock}</span>
+                )}
+              </>
+            )}
           </p>
-          {pick.isLocked && (
-            <div className="inline-flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg border border-red-200">
-              <Lock size={14} />
-              <span className="text-sm font-medium">Locked - Event Started</span>
-            </div>
-          )}
-          {!pick.isLocked && timeUntilLock && (
-            <div className="inline-flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-lg border border-yellow-200">
-              <span className="text-sm font-medium">{timeUntilLock}</span>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Engagement Section */}
-      <div className="border-t border-gray-100 px-4 sm:px-6 py-3 bg-gray-50/50">
-        <div className="flex items-center justify-between">
+      <div className="border-t border-gray-200 px-4 sm:px-5 py-2">
+        <div className="flex items-center justify-between max-w-full">
           {/* Left actions */}
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-1 min-w-0">
             {/* Upvote button */}
             <button
               onClick={() => handleVote('UPVOTE')}
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`group flex items-center space-x-1 px-2 sm:px-3 py-1.5 rounded-full transition-colors ${
                 userVoteType === 'UPVOTE'
-                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'text-green-600'
+                  : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
               }`}
+              title="Upvote"
             >
               <ThumbsUp
                 size={18}
-                className={userVoteType === 'UPVOTE' ? 'fill-green-600' : ''}
+                className={`${userVoteType === 'UPVOTE' ? 'fill-green-600' : ''} transition-all`}
               />
-              <span className="text-sm font-medium">{upvotes}</span>
+              <span className="text-xs sm:text-sm font-medium">{upvotes}</span>
             </button>
 
             {/* Downvote button */}
             <button
               onClick={() => handleVote('DOWNVOTE')}
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`group flex items-center space-x-1 px-2 sm:px-3 py-1.5 rounded-full transition-colors ${
                 userVoteType === 'DOWNVOTE'
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'text-red-600'
+                  : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
               }`}
+              title="Downvote"
             >
               <ThumbsDown
                 size={18}
-                className={userVoteType === 'DOWNVOTE' ? 'fill-red-600' : ''}
+                className={`${userVoteType === 'DOWNVOTE' ? 'fill-red-600' : ''} transition-all`}
               />
-              <span className="text-sm font-medium">{downvotes}</span>
+              <span className="text-xs sm:text-sm font-medium">{downvotes}</span>
             </button>
 
             <button
               onClick={toggleComments}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+              className={`group flex items-center space-x-1 px-2 sm:px-3 py-1.5 rounded-full transition-colors ${
                 showComments
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'text-primary'
+                  : 'text-gray-600 hover:text-primary hover:bg-primary/5'
               }`}
+              title="Comments"
             >
-              <MessageCircle size={18} className={showComments ? 'fill-primary' : ''} />
-              <span className="text-sm font-medium">{commentCount || comments.length}</span>
+              <MessageCircle size={18} className="transition-all" />
+              <span className="text-xs sm:text-sm font-medium">{commentCount || comments.length}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-              <Eye size={18} />
-              <span className="text-sm font-medium">{views}</span>
-            </button>
+            <div className="hidden sm:flex items-center space-x-1 px-2 sm:px-3 py-1.5 text-gray-500 text-xs sm:text-sm">
+              <Eye size={16} />
+              <span>{views}</span>
+            </div>
           </div>
 
           {/* Right actions */}
           <div className="flex items-center space-x-1">
-            <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+            <button
+              onClick={handleShare}
+              disabled={isSharing}
+              className="p-2 rounded-full text-gray-600 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Share"
+            >
               <Share2 size={18} />
             </button>
 
             <button
               onClick={handleSave}
-              className={`p-2 rounded-lg transition-all duration-200 ${
+              className={`p-2 rounded-full transition-colors ${
                 isSaved
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'text-primary'
+                  : 'text-gray-600 hover:text-primary hover:bg-primary/5'
               }`}
+              title={isSaved ? 'Saved' : 'Save'}
             >
               <Bookmark
                 size={18}
@@ -600,11 +651,11 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
 
       {/* Comments Section */}
       {showComments && (
-        <div className="border-t border-gray-100 px-4 sm:px-6 py-4 bg-white">
+        <div className="border-t border-gray-200 px-4 sm:px-5 py-4 bg-gray-50/30">
           {/* Comment Input */}
           {session && (
             <form onSubmit={handleCommentSubmit} className="mb-4">
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-2.5">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-semibold text-sm">
                     {session.user?.name?.[0]?.toUpperCase() || 'U'}
@@ -615,20 +666,19 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Add a comment..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none text-sm bg-white"
                     rows={2}
                     maxLength={500}
                   />
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500">
                       {commentText.length}/500
                     </span>
                     <button
                       type="submit"
                       disabled={!commentText.trim() || isSubmittingComment}
-                      className="flex items-center space-x-1 px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                      className="flex items-center space-x-1.5 px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                     >
-                      <Send size={14} />
                       <span>{isSubmittingComment ? 'Posting...' : 'Post'}</span>
                     </button>
                   </div>
@@ -638,18 +688,18 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
           )}
 
           {/* Comments List */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {isLoadingComments ? (
               <div className="text-center py-4">
-                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent"></div>
               </div>
             ) : comments.length === 0 ? (
               <div className="text-center py-6 text-gray-500 text-sm">
-                No comments yet. Be the first to share your thoughts!
+                No comments yet. Be the first to comment!
               </div>
             ) : (
               comments.map((comment) => (
-                <div key={comment.id} className="flex items-start space-x-3">
+                <div key={comment.id} className="flex items-start space-x-2.5">
                   <Link
                     href={`/profile/${comment.user.id}`}
                     className="flex-shrink-0"
@@ -661,36 +711,36 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
                     </div>
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <div className="bg-gray-50 rounded-lg px-3 py-2">
-                      <div className="flex items-center space-x-2 mb-1">
+                    <div className="bg-white border border-gray-200 rounded-xl px-3 py-2">
+                      <div className="flex items-center space-x-1.5 mb-1">
                         <Link
                           href={`/profile/${comment.user.id}`}
-                          className="font-semibold text-sm text-gray-900 hover:text-primary"
+                          className="font-semibold text-sm text-gray-900 hover:underline"
                         >
                           {comment.user.name || 'Anonymous'}
                         </Link>
                         {comment.user.isVerified && (
-                          <CheckCircle size={14} className="text-blue-500" />
+                          <CheckCircle size={13} className="text-blue-500" />
                         )}
+                        <span className="text-gray-400">·</span>
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-700 leading-relaxed">
+                      <p className="text-sm text-gray-800 leading-relaxed">
                         {comment.content}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-4 mt-1 px-3">
-                      <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                      </span>
-                      {session?.user?.id === comment.user.id && (
+                    {session?.user?.id === comment.user.id && (
+                      <div className="mt-1 px-3">
                         <button
                           onClick={() => handleDeleteComment(comment.id)}
-                          className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center space-x-1"
+                          className="text-xs text-red-600 hover:text-red-700 font-medium"
                         >
-                          <Trash2 size={12} />
-                          <span>Delete</span>
+                          Delete
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

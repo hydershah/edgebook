@@ -68,25 +68,66 @@ export async function GET(
     const now = new Date()
     const isLocked = pick.lockedAt ? now >= pick.lockedAt : false
 
+    // Fetch stats
+    const [upvoteCount, downvoteCount, commentCount, unlockCount, userEngagement] = await Promise.all([
+      prisma.like.count({ where: { pickId, voteType: 'UPVOTE' } }),
+      prisma.like.count({ where: { pickId, voteType: 'DOWNVOTE' } }),
+      prisma.comment.count({ where: { pickId } }),
+      prisma.purchase.count({ where: { pickId } }),
+      session?.user?.id
+        ? Promise.all([
+            prisma.like.findUnique({
+              where: { userId_pickId: { userId: session.user.id, pickId } },
+            }),
+            prisma.bookmark.findUnique({
+              where: { userId_pickId: { userId: session.user.id, pickId } },
+            }),
+            prisma.purchase.findUnique({
+              where: { userId_pickId: { userId: session.user.id, pickId } },
+            }),
+          ])
+        : [null, null, null],
+    ])
+
+    const [userVote, isBookmarked, isUnlocked] = userEngagement
+
+    const stats = {
+      upvotes: upvoteCount,
+      downvotes: downvoteCount,
+      score: upvoteCount - downvoteCount,
+      comments: commentCount,
+      views: pick.viewCount || 0,
+      unlocks: unlockCount,
+      userVoteType: userVote?.voteType || null,
+      isBookmarked: !!isBookmarked,
+      isUnlocked: !!isUnlocked,
+    }
+
     // SECURITY: Obfuscate content for premium picks that haven't been purchased
     if (pick.isPremium && !isOwner && !hasPurchased) {
       // Return truncated/obfuscated content
       const truncatedDetails = pick.details.substring(0, 50) + '...'
 
       return NextResponse.json({
-        ...pick,
-        details: truncatedDetails,
-        odds: null, // Hide odds for locked premium picks
-        isLocked,
-        isPremiumLocked: true,
+        pick: {
+          ...pick,
+          details: truncatedDetails,
+          odds: null, // Hide odds for locked premium picks
+          isLocked,
+          isPremiumLocked: true,
+        },
+        stats,
       })
     }
 
     // Return full content for owners, purchasers, or free picks
     return NextResponse.json({
-      ...pick,
-      isLocked,
-      isPremiumLocked: false,
+      pick: {
+        ...pick,
+        isLocked,
+        isPremiumLocked: false,
+      },
+      stats,
     })
   } catch (error) {
     console.error('Error fetching pick:', error)
