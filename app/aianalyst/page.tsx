@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Plus, Sparkles, MessageCircle, TrendingUp, BarChart3, Menu, X } from 'lucide-react'
+import { Send, Plus, Sparkles, MessageCircle, Menu, X } from 'lucide-react'
 
 interface Message {
   id: string
@@ -125,56 +125,53 @@ export default function AIAnalystPage() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      sendMessage()
+      if (!currentChatId) {
+        createNewChat().then(() => {
+          setTimeout(sendMessage, 100)
+        })
+      } else {
+        sendMessage()
+      }
     }
   }
 
+  const [selectedModel, setSelectedModel] = useState('GPT-5')
+
   const examplePrompts = [
-    {
-      icon: TrendingUp,
-      title: "Analyze trends",
-      prompt: "What are the current betting trends in NBA?"
-    },
-    {
-      icon: BarChart3,
-      title: "Strategy advice",
-      prompt: "Give me tips on improving my prediction accuracy"
-    },
-    {
-      icon: MessageCircle,
-      title: "Game analysis",
-      prompt: "Help me analyze tonight's featured games"
-    }
+    "Who won the last World Cup?",
+    "Compare LeBron James and Michael Jordan",
+    "What are the current NFL playoff standings?",
+    "Explain the Premier League relegation system"
   ]
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="h-screen pt-16 flex overflow-hidden">
+      <div className="h-screen flex overflow-hidden">
         {/* Sidebar */}
         <div
           className={`${
             sidebarOpen ? 'w-72' : 'w-0'
           } transition-all duration-300 ease-in-out bg-white border-r border-gray-200 flex flex-col overflow-hidden flex-shrink-0`}
         >
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-3 border-b border-gray-200">
           <button
             onClick={createNewChat}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium px-4 py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium px-4 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-[15px]"
           >
-            <Plus size={20} />
+            <Plus size={18} />
             <span>New Chat</span>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+        <div className="flex-1 overflow-y-auto p-2 scrollbar-hide">
+          <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
             Recent Chats
           </div>
           {chats.length === 0 ? (
             <div className="px-3 py-8 text-center">
-              <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">No conversations yet</p>
-              <p className="text-xs text-gray-400 mt-1">Start a new chat to begin</p>
+              <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p className="text-[13px] text-gray-500">No conversations yet</p>
+              <p className="text-[11px] text-gray-400 mt-1">Start a new chat to begin</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -182,14 +179,14 @@ export default function AIAnalystPage() {
                 <button
                   key={chat.id}
                   onClick={() => setCurrentChatId(chat.id)}
-                  className={`w-full text-left px-3 py-3 rounded-lg transition-all duration-200 group ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 group ${
                     currentChatId === chat.id
                       ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'hover:bg-gray-50 text-gray-700'
                   }`}
                 >
-                  <p className="text-sm font-medium truncate">{chat.title}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-[14px] font-medium truncate">{chat.title}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
                     {new Date(chat.createdAt).toLocaleDateString()}
                   </p>
                 </button>
@@ -202,22 +199,16 @@ export default function AIAnalystPage() {
         {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-background overflow-hidden">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-700"
             >
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">AI Sports Analyst</h1>
-                <p className="text-xs text-gray-500">Powered by advanced AI</p>
-              </div>
+              <h1 className="text-[17px] font-semibold text-gray-900">GameLens.AI</h1>
             </div>
           </div>
         </div>
@@ -287,49 +278,34 @@ export default function AIAnalystPage() {
           ) : (
             // Empty State
             <div className="h-full flex items-center justify-center px-6">
-              <div className="text-center max-w-2xl mx-auto">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <Sparkles className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                  AI Sports Analyst
+              <div className="text-center max-w-4xl mx-auto -mt-20">
+                <h2 className="text-[42px] font-bold text-gray-900 mb-3 tracking-tight">
+                  Welcome to GameLens.AI!
                 </h2>
-                <p className="text-gray-600 mb-8 text-lg">
-                  Get expert predictions, strategic insights, and personalized advice powered by AI
+                <p className="text-gray-600 mb-16 text-[22px] font-normal">
+                  Your AI Sports Analyst
                 </p>
 
                 {!currentChatId && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    {examplePrompts.map((example, index) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl mx-auto px-4">
+                    {examplePrompts.map((prompt, index) => (
                       <button
                         key={index}
                         onClick={() => {
                           if (!currentChatId) {
                             createNewChat().then(() => {
-                              setInput(example.prompt)
+                              setInput(prompt)
                             })
                           } else {
-                            setInput(example.prompt)
+                            setInput(prompt)
                           }
                         }}
-                        className="group p-4 bg-white border border-gray-200 rounded-xl hover:border-primary hover:shadow-md transition-all duration-200 text-left"
+                        className="p-4 bg-white border border-gray-200 rounded-[14px] hover:border-gray-300 hover:shadow-sm transition-all duration-150 text-left text-[15px] text-gray-700 hover:text-gray-900 font-normal"
                       >
-                        <example.icon className="w-6 h-6 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                        <h3 className="font-semibold text-gray-900 mb-1">{example.title}</h3>
-                        <p className="text-sm text-gray-600">{example.prompt}</p>
+                        {prompt}
                       </button>
                     ))}
                   </div>
-                )}
-
-                {!currentChatId && (
-                  <button
-                    onClick={createNewChat}
-                    className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    <Plus size={20} />
-                    <span>Start New Conversation</span>
-                  </button>
                 )}
               </div>
             </div>
@@ -337,38 +313,53 @@ export default function AIAnalystPage() {
         </div>
 
         {/* Input Area */}
-        {currentChatId && (
-          <div className="border-t border-gray-200 bg-white">
-            <div className="max-w-4xl mx-auto px-6 py-4">
-              <div className="relative flex items-end gap-3 bg-white border border-gray-300 rounded-2xl shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything about sports predictions, strategies, or analysis..."
-                  className="flex-1 px-5 py-4 bg-transparent resize-none outline-none max-h-40 text-[15px]"
-                  rows={1}
-                  disabled={loading}
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={loading || !input.trim()}
-                  className={`flex-shrink-0 m-2 p-3 rounded-xl transition-all duration-200 ${
-                    loading || !input.trim()
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-primary hover:bg-primary-dark text-white shadow-sm hover:shadow-md'
-                  }`}
+        <div className="border-t border-gray-200 bg-white">
+          <div className="max-w-4xl mx-auto px-6 py-5">
+            <div className="relative flex items-center gap-0 bg-white border border-gray-300 rounded-[16px] shadow-sm hover:shadow-md focus-within:border-gray-400 transition-all">
+              <div className="flex items-center gap-2 px-4 py-3 border-r border-gray-200">
+                <Sparkles size={16} className="text-gray-500" />
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="bg-transparent text-[14px] font-medium text-gray-700 outline-none cursor-pointer pr-1"
                 >
-                  <Send size={20} />
-                </button>
+                  <option value="GPT-5">GPT-5</option>
+                  <option value="GPT-4">GPT-4</option>
+                  <option value="GPT-3.5">GPT-3.5</option>
+                </select>
               </div>
-              <p className="text-xs text-gray-500 text-center mt-3">
-                Press Enter to send, Shift + Enter for new line
-              </p>
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Send a message..."
+                className="flex-1 px-4 py-3 bg-transparent resize-none outline-none max-h-32 text-[15px] text-gray-900 placeholder:text-gray-400"
+                rows={1}
+                disabled={loading}
+              />
+              <button
+                onClick={() => {
+                  if (!currentChatId) {
+                    createNewChat().then(() => {
+                      setTimeout(sendMessage, 100)
+                    })
+                  } else {
+                    sendMessage()
+                  }
+                }}
+                disabled={loading || !input.trim()}
+                className={`flex-shrink-0 mr-2 p-2 rounded-lg transition-all duration-200 ${
+                  loading || !input.trim()
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-primary hover:bg-primary/5'
+                }`}
+              >
+                <Send size={20} />
+              </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
       </div>
     </div>

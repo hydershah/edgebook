@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
@@ -11,6 +12,7 @@ export const dynamic = 'force-dynamic'
 function VerifyEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session, update } = useSession()
   const token = searchParams.get('token')
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -37,10 +39,20 @@ function VerifyEmailContent() {
         if (response.ok) {
           setStatus('success')
           setMessage('Your email has been verified successfully!')
-          // Redirect to sign in after 3 seconds
-          setTimeout(() => {
-            router.push('/auth/signin?verified=true')
-          }, 3000)
+
+          // If user is logged in, update their session
+          if (session?.user) {
+            await update()
+            // Redirect to feed after session update
+            setTimeout(() => {
+              router.push('/feed')
+            }, 2000)
+          } else {
+            // If not logged in, redirect to sign in
+            setTimeout(() => {
+              router.push('/auth/signin?verified=true')
+            }, 3000)
+          }
         } else {
           setStatus('error')
           setMessage(data.error || 'Failed to verify email')
@@ -52,7 +64,7 @@ function VerifyEmailContent() {
     }
 
     verifyEmail()
-  }, [token, router])
+  }, [token, router, session, update])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -102,13 +114,13 @@ function VerifyEmailContent() {
           {status === 'success' && (
             <div className="space-y-3">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Redirecting to sign in...
+                {session?.user ? 'Redirecting to your feed...' : 'Redirecting to sign in...'}
               </p>
               <Link
-                href="/auth/signin"
+                href={session?.user ? '/feed' : '/auth/signin'}
                 className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
               >
-                Sign In Now
+                {session?.user ? 'Go to Feed' : 'Sign In Now'}
               </Link>
             </div>
           )}

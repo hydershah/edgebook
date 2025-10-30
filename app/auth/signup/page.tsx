@@ -76,10 +76,23 @@ export default function SignUp() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('Account created successfully! Please check your email to verify your account before signing in.')
-        setTimeout(() => {
-          router.push('/auth/signin?registered=true&verification=pending')
-        }, 3000)
+        // Automatically sign in the user after successful signup
+        const signInResult = await signIn('credentials', {
+          email: trimmedEmail,
+          password: formData.password,
+          redirect: false,
+        })
+
+        if (signInResult?.ok) {
+          // Redirect to feed after successful sign in
+          router.push('/feed')
+        } else {
+          // Fallback if auto-signin fails (shouldn't happen)
+          setSuccess('Account created successfully! Redirecting to sign in...')
+          setTimeout(() => {
+            router.push('/auth/signin?registered=true')
+          }, 2000)
+        }
       } else {
         setError(data.error || 'Failed to create account')
       }

@@ -194,10 +194,10 @@ export default function Home() {
       <section className="border-b border-gray-200 bg-gradient-to-br from-slate-50 via-indigo-50/30 to-emerald-50/20">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="text-center">
-            <h1 className="text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
+            <h1 className="whitespace-nowrap text-heading-1 text-gray-900">
               Think you&rsquo;ve got the edge? Prove it!
             </h1>
-            <p className="mx-auto mt-14 max-w-3xl text-2xl leading-relaxed text-gray-600">
+            <p className="mx-auto mt-14 max-w-3xl text-subheader-2 text-gray-600">
               Showcase your picks, track results, and earn from your insight
             </p>
             <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -360,10 +360,10 @@ export default function Home() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-heading-2 text-gray-900">
               Built for sports fans who predict outcomes
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-paragraph-1 text-gray-600">
               Post picks, share your card, prove your record, sell your insights.
             </p>
           </div>
@@ -373,8 +373,8 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Users className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Profiles built on proof</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-6 text-subheader-2 text-gray-900">Profiles built on proof</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Build trust instantly. Show your bio, socials, and verified stats so followers know your record is real.
               </p>
             </div>
@@ -383,8 +383,8 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Target className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Prediction posts that sell</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-6 text-subheader-2 text-gray-900">Prediction posts that sell</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Post free teasers or premium picks with proof of performance. Every result can be tracked for public record.
               </p>
             </div>
@@ -393,8 +393,8 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Wallet className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Payouts Simplified</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-6 text-subheader-2 text-gray-900">Payouts Simplified</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Track earnings, create both subscriptions and per pick paywalls. All from one transparent dashboard.
               </p>
             </div>
@@ -403,8 +403,8 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <LineChart className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-gray-900">Smart discovery for fans</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-6 text-subheader-2 text-gray-900">Smart discovery for fans</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Get discovered by followers, sort by sport or top earners, and rise up the leaderboard with every winning pick.
               </p>
             </div>
@@ -415,10 +415,10 @@ export default function Home() {
       <section className="border-t border-b border-gray-200 bg-background py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-heading-2 text-gray-900">
               Post. Prove. Profit
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-paragraph-1 text-gray-600">
               Three steps from talking picks to earning from them.
             </p>
           </div>
@@ -426,11 +426,11 @@ export default function Home() {
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <span className="text-xs font-semibold uppercase tracking-wide text-primary">Step 1</span>
-              <h3 className="mt-3 text-xl font-semibold text-gray-900">Build your edge</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-3 text-subheader-2 text-gray-900">Build your edge</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Upload your photo, craft your bio, and connect socials. Turn your record into your reputation.
               </p>
-              <ul className="mt-4 space-y-2 text-sm text-gray-600">
+              <ul className="mt-4 space-y-2 text-paragraph-2 text-gray-600">
                 <li>• Win/loss tracking</li>
                 <li>• Performance by sport</li>
                 <li>• Verified credibility from day one</li>
@@ -439,11 +439,11 @@ export default function Home() {
 
             <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <span className="text-xs font-semibold uppercase tracking-wide text-primary">Step 2</span>
-              <h3 className="mt-3 text-xl font-semibold text-gray-900">Share your picks</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-3 text-subheader-2 text-gray-900">Share your picks</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Post predictions with odds, notes, and confidence levels. Offer free insights or premium picks that unlock instantly when purchased.
               </p>
-              <ul className="mt-4 space-y-2 text-sm text-gray-600">
+              <ul className="mt-4 space-y-2 text-paragraph-2 text-gray-600">
                 <li>• Blurred previews for premium content</li>
                 <li>• Upload models, screenshots, or clips</li>
                 <li>• Grade your results (win/loss/push)</li>
@@ -452,11 +452,11 @@ export default function Home() {
 
             <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <span className="text-xs font-semibold uppercase tracking-wide text-primary">Step 3</span>
-              <h3 className="mt-3 text-xl font-semibold text-gray-900">Get paid for your reputation</h3>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              <h3 className="mt-3 text-subheader-2 text-gray-900">Get paid for your reputation</h3>
+              <p className="mt-3 text-paragraph-2 leading-relaxed text-gray-600">
                 Earn directly from your audience through a transparent platform and payout system.
               </p>
-              <ul className="mt-4 space-y-2 text-sm text-gray-600">
+              <ul className="mt-4 space-y-2 text-paragraph-2 text-gray-600">
                 <li>• Instant payment support</li>
                 <li>• Manage and track earnings</li>
                 <li>• Download all transactions</li>
@@ -479,10 +479,10 @@ export default function Home() {
       <section className="bg-background py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-heading-2 text-gray-900">
               Built on trust.
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-paragraph-1 text-gray-600">
               EdgeBook runs on transparency, security, and fair play, so creators and fans can focus on what matters: the picks.
             </p>
           </div>
@@ -491,8 +491,8 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <ShieldCheck className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Age</h3>
-                <p className="mt-2 text-sm text-gray-600">
+                <h3 className="text-subheader-2 text-gray-900">Age</h3>
+                <p className="mt-2 text-paragraph-2 text-gray-600">
                   18+ verification to ensure safeguards are in place. Keeping the community credible and compliant
                 </p>
               </div>
@@ -501,8 +501,8 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <CreditCard className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Transparent payments</h3>
-                <p className="mt-2 text-sm text-gray-600">
+                <h3 className="text-subheader-2 text-gray-900">Transparent payments</h3>
+                <p className="mt-2 text-paragraph-2 text-gray-600">
                   Every top-up, unlock, and payout is tracked in your dashboard with zero hidden fees and instant digital receipts.
                 </p>
               </div>
@@ -511,8 +511,8 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <Globe className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Territory protection</h3>
-                <p className="mt-2 text-sm text-gray-600">
+                <h3 className="text-subheader-2 text-gray-900">Territory protection</h3>
+                <p className="mt-2 text-paragraph-2 text-gray-600">
                   EdgeBook adapts to your region, respecting privacy laws while keeping your data under your control.
                 </p>
               </div>
@@ -521,8 +521,8 @@ export default function Home() {
             <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <Users className="h-6 w-6 flex-shrink-0 text-primary" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Responsible gaming tools</h3>
-                <p className="mt-2 text-sm text-gray-600">
+                <h3 className="text-subheader-2 text-gray-900">Responsible gaming tools</h3>
+                <p className="mt-2 text-paragraph-2 text-gray-600">
                   EdgeBook is built to help you make smart decisions by giving you transparency in all public opinion.
                 </p>
               </div>
@@ -534,10 +534,10 @@ export default function Home() {
       <section className="bg-gray-900 py-20 text-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl backdrop-blur">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="text-heading-2">
               Join the community where picks become proof.
             </h2>
-            <p className="mt-4 text-lg text-white/80">
+            <p className="mt-4 text-paragraph-1 text-white/80">
               Create your profile, post your first picks, and let your record do the talking.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">

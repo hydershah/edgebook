@@ -5,6 +5,7 @@ import FacebookProvider from 'next-auth/providers/facebook'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
+import { sendWelcomeEmail } from './email'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -106,11 +107,29 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email
         token.name = user.name
         token.picture = user.image
+
+        // Fetch emailVerified status from database on initial sign in
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { emailVerified: true }
+        })
+        token.emailVerified = dbUser?.emailVerified || null
       }
 
-      // Update token if user updates their session
-      if (trigger === 'update' && session) {
-        token = { ...token, ...session.user }
+      // Only refresh emailVerified from database if:
+      // 1. Session is being manually updated (trigger === 'update'), OR
+      // 2. Email is not yet verified (we need to check if it's been verified)
+      // Once verified, we never need to check again
+      if (trigger === 'update' && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { emailVerified: true }
+        })
+        token.emailVerified = dbUser?.emailVerified || null
+
+        if (session) {
+          token = { ...token, ...session.user }
+        }
       }
 
       return token
@@ -120,13 +139,21 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.name = token.name as string
+        session.user.emailVerified = token.emailVerified as Date | null
       }
       return session
     },
   },
   events: {
     async linkAccount({ user, account, profile }) {
-      // Update user with OAuth profile data if available
+      // Check if this is a new user (first OAuth account being linked)
+      const existingAccounts = await prisma.account.count({
+        where: { userId: user.id },
+      })
+
+      const isNewUser = existingAccounts === 0
+
+      // Update user with OAuth profile data if available and mark email as verified
       if (profile?.name && !user.name) {
         await prisma.user.update({
           where: { id: user.id },
@@ -135,6 +162,22 @@ export const authOptions: NextAuthOptions = {
             emailVerified: new Date(),
           },
         })
+      } else {
+        // Always mark email as verified for OAuth users
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            emailVerified: new Date(),
+          },
+        })
+      }
+
+      // Send welcome email for new OAuth users (don't block on this)
+      if (isNewUser && user.email) {
+        sendWelcomeEmail(user.email, user.name || 'there')
+          .catch((error) => {
+            console.error('Failed to send welcome email to OAuth user:', error)
+          })
       }
     },
   },

@@ -236,7 +236,7 @@ export default function ProfileSettingsForm({ user }: ProfileSettingsFormProps) 
             { key: 'youtube', label: 'YouTube', placeholder: 'youtube.com/edgebook' },
             { key: 'twitter', label: 'Twitter / X', placeholder: '@edgebook' },
             { key: 'tiktok', label: 'TikTok', placeholder: '@edgebook' },
-            { key: 'website', label: 'Website', placeholder: 'edgebook.com' },
+            { key: 'website', label: 'Website', placeholder: 'edgebook.ai' },
           ].map((field) => (
             <div key={field.key}>
               <label

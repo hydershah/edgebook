@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Manrope } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -7,8 +7,18 @@ import { AuthProvider } from '@/components/AuthProvider'
 import RouteLoader from '@/components/RouteLoader'
 import { Suspense } from 'react'
 import ThemeFavicon from '@/components/ThemeFavicon'
+import dynamic from 'next/dynamic'
 
-const inter = Inter({ subsets: ['latin'] })
+const EmailVerificationBanner = dynamic(
+  () => import('@/components/EmailVerificationBanner'),
+  { ssr: false }
+)
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
+})
 
 export const metadata: Metadata = {
   title: 'EdgeBook - The social platform for sports predictions and picks',
@@ -26,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://edgebook.com',
+    url: 'https://edgebook.ai',
     siteName: 'EdgeBook',
     title: 'EdgeBook - The social platform for sports predictions and picks',
     description: 'Share your predictions and insights with the community',
@@ -53,17 +63,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={manrope.variable}>
       <head>
         <ThemeFavicon />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans">
         <AuthProvider>
           <Suspense fallback={null}>
             <RouteLoader />
           </Suspense>
           <div className="min-h-screen flex flex-col">
             <Navbar />
+            <EmailVerificationBanner />
             <main className="flex-1">
               {children}
             </main>

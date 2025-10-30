@@ -140,7 +140,7 @@ export default function Navbar() {
           </div>
 
           {/* Right: Search + Actions */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
             {/* Global Search */}
             <div className="hidden lg:flex" style={{ width: '240px' }}>
               <UserSearch 

@@ -482,7 +482,7 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
         </div>
 
         {/* Matchup */}
-        <h3 className="font-bold text-xl text-gray-900 mb-3 leading-tight">
+        <h3 className="font-bold text-subheader-2 text-gray-900 mb-3 leading-tight">
           {pick.matchup}
         </h3>
 

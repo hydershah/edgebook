@@ -8,13 +8,39 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
+      },
       colors: {
+        // Primary Brand Colors
         primary: {
           DEFAULT: '#206344',
           dark: '#1a4f35',
           light: '#2a7a56',
         },
+        brand: {
+          green: '#206344',
+        },
+        // Grayscale Colors from Brand Guidelines
+        gray: {
+          cloud: '#EDEFF7',
+          smoke: '#D3D6E0',
+          steel: '#BCBFCC',
+          space: '#9DA2B3',
+          graphite: '#6E7180',
+          arsenic: '#40424D',
+          phantom: '#1E1E24',
+        },
         background: '#F5F5F5',
+      },
+      fontSize: {
+        // Typography Scaling from Brand Guidelines
+        'heading-1': ['64px', { lineHeight: '1.2', fontWeight: '700' }],
+        'heading-2': ['48px', { lineHeight: '1.2', fontWeight: '700' }],
+        'subheader-1': ['32px', { lineHeight: '1.3', fontWeight: '600' }],
+        'subheader-2': ['24px', { lineHeight: '1.4', fontWeight: '600' }],
+        'paragraph-1': ['18px', { lineHeight: '1.6', fontWeight: '400' }],
+        'paragraph-2': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
       },
       animation: {
         'in': 'in 0.2s ease-out',

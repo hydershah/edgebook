@@ -438,7 +438,7 @@ export default function AccountSettings({ user }: { user: User }) {
             { key: 'facebook', label: 'Facebook', placeholder: 'edgebook' },
             { key: 'youtube', label: 'YouTube', placeholder: 'youtube.com/edgebook' },
             { key: 'tiktok', label: 'TikTok', placeholder: '@edgebook' },
-            { key: 'website', label: 'Website', placeholder: 'edgebook.com' },
+            { key: 'website', label: 'Website', placeholder: 'edgebook.ai' },
           ].map((field) => (
             <div key={field.key}>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={field.key}>

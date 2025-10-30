@@ -82,11 +82,11 @@ export default function FeedPage() {
                     <Sparkles className="text-white" size={24} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">AI Analyst</h3>
+                    <h3 className="font-bold text-subheader-2">AI Analyst</h3>
                     <p className="text-xs text-white/80">Smart Insights</p>
                   </div>
                 </div>
-                <p className="text-sm text-white/90 mb-4 leading-relaxed">
+                <p className="text-paragraph-2 text-white/90 mb-4 leading-relaxed">
                   Get personalized predictions and improve your edge with AI
                 </p>
                 <Link
@@ -99,7 +99,7 @@ export default function FeedPage() {
 
               {/* Quick Stats */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                <h3 className="font-bold text-gray-900 mb-4">Today&apos;s Trends</h3>
+                <h3 className="font-bold text-subheader-2 text-gray-900 mb-4">Today&apos;s Trends</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-600">Hot Picks</span>
@@ -276,7 +276,7 @@ export default function FeedPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                 <div className="flex items-center space-x-2 mb-4">
                   <TrendingUp className="text-primary" size={20} />
-                  <h3 className="font-bold text-gray-900">Trending</h3>
+                  <h3 className="font-bold text-subheader-2 text-gray-900">Trending</h3>
                 </div>
                 <div className="space-y-3">
                   {loadingSports ? (
@@ -323,7 +323,7 @@ export default function FeedPage() {
 
               {/* Suggested Creators */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                <h3 className="font-bold text-gray-900 mb-4">Top Creators</h3>
+                <h3 className="font-bold text-subheader-2 text-gray-900 mb-4">Top Creators</h3>
                 <div className="space-y-4">
                   {loadingCreators ? (
                     Array.from({ length: 3 }).map((_, index) => (
