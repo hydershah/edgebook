@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
   // Admin routes protection
   if (path.startsWith("/admin")) {
     try {
+      // Get the token - NextAuth will handle cookie configuration automatically
       const token = await getToken({
         req: request,
         secret: process.env.NEXTAUTH_SECRET,
@@ -21,6 +22,9 @@ export async function middleware(request: NextRequest) {
       // Debug logging for production
       if (!token) {
         console.log("Admin middleware: No token found for path:", path);
+        console.log("Environment:", process.env.NODE_ENV);
+        console.log("Secret configured:", !!process.env.NEXTAUTH_SECRET);
+        console.log("Cookies:", request.cookies.getAll().map(c => c.name));
       }
 
       // Check if user is authenticated
