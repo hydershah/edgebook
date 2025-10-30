@@ -9,6 +9,8 @@ import { authOptions } from '@/lib/auth';
 import { subscriptionService } from '@/lib/services/payment';
 import { paymentService } from '@/lib/services/payment';
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
