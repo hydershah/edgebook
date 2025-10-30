@@ -153,23 +153,44 @@ export default function PickFeed({ filters, followingOnly }: PickFeedProps) {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/6"></div>
+          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 animate-pulse">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3 flex-1">
+                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-3.5 bg-gray-200 rounded w-24 mb-1.5"></div>
+                  <div className="h-3 bg-gray-200 rounded w-16"></div>
+                </div>
               </div>
             </div>
-            <div className="space-y-3">
+
+            {/* Tags and status */}
+            <div className="flex items-center justify-between mb-4">
               <div className="flex space-x-2">
-                <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                <div className="h-6 bg-gray-200 rounded-md w-14"></div>
+                <div className="h-6 bg-gray-200 rounded-md w-16"></div>
+                <div className="h-6 bg-gray-200 rounded-md w-12"></div>
               </div>
-              <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
+              <div className="h-6 bg-gray-200 rounded-md w-20"></div>
+            </div>
+
+            {/* Matchup */}
+            <div className="h-7 bg-gray-200 rounded w-3/4 mb-4"></div>
+
+            {/* Game info card */}
+            <div className="bg-gray-100 rounded-lg p-4 mb-4">
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-200 rounded w-4/6"></div>
             </div>
           </div>
         ))}
@@ -199,7 +220,7 @@ export default function PickFeed({ filters, followingOnly }: PickFeedProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {picks.map((pick, index) => (
         <div
           key={pick.id}
@@ -215,17 +236,17 @@ export default function PickFeed({ filters, followingOnly }: PickFeedProps) {
       ))}
 
       {/* Infinite scroll trigger */}
-      <div ref={observerTarget} className="py-4">
+      <div ref={observerTarget} className="py-6">
         {loadingMore && (
           <div className="flex items-center justify-center">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
-            <span className="ml-2 text-gray-600">Loading more picks...</span>
+            <span className="ml-2 text-gray-600 text-sm">Loading more picks...</span>
           </div>
         )}
 
         {!hasMore && picks.length > 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500 text-sm">You&apos;ve reached the end of the feed</p>
+          <div className="text-center py-10">
+            <p className="text-gray-500 text-sm font-medium">You&apos;ve reached the end of the feed</p>
           </div>
         )}
       </div>

@@ -102,6 +102,7 @@ model Like {
   @@index([pickId])
   @@index([userId])
   @@index([pickId, createdAt])
+  @@index([pickId, voteType])
 }
 
 model Message {

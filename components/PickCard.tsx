@@ -6,6 +6,7 @@ import { Lock, TrendingUp, ThumbsUp, ThumbsDown, MessageCircle, Share2, Bookmark
 import { formatDistanceToNow } from 'date-fns'
 import { useSession } from 'next-auth/react'
 import Modal from './Modal'
+import { trackPickView } from '@/lib/viewTracker'
 
 interface Comment {
   id: string
@@ -93,16 +94,9 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     }
   }, [stats])
 
-  // Track view on mount
+  // Track view on mount (batched for performance)
   useEffect(() => {
-    const trackView = async () => {
-      try {
-        await fetch(`/api/picks/${pick.id}/view`, { method: 'POST' })
-      } catch (error) {
-        console.error('Error tracking view:', error)
-      }
-    }
-    trackView()
+    trackPickView(pick.id)
   }, [pick.id])
 
   // Countdown timer for lock time
@@ -420,76 +414,119 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
   }
 
   return (
-    <article className="bg-white">
+    <article className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
-      <div className="p-6">
+      <div className="p-5">
         <div className="flex items-start justify-between mb-4">
           <Link
             href={`/profile/${pick.user.id}`}
             className="flex items-center space-x-3 group/user hover:opacity-80 transition-opacity flex-1 min-w-0"
           >
             <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
-                <span className="text-white font-bold text-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center shadow-sm ring-2 ring-white">
+                <span className="text-white font-bold text-base">
                   {pick.user.name?.[0]?.toUpperCase() || '?'}
                 </span>
               </div>
               {/* Verified badge */}
               <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5 shadow-sm">
-                <CheckCircle className="text-white" size={14} />
+                <CheckCircle className="text-white" size={12} />
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1.5 flex-wrap">
-                <p className="font-semibold text-gray-900 truncate text-[15px]">
+                <p className="font-semibold text-gray-900 truncate text-sm">
                   {pick.user.name || 'Anonymous'}
                 </p>
-                <span className="text-gray-400">·</span>
-                <p className="text-sm text-gray-500 flex-shrink-0">
+                <span className="text-gray-400 text-xs">·</span>
+                <p className="text-xs text-gray-500 flex-shrink-0">
                   {formatDistanceToNow(new Date(pick.createdAt), { addSuffix: true })}
                 </p>
-              </div>
-              <div className="flex items-center space-x-2 mt-0.5 flex-wrap gap-1">
-                <span className="text-xs text-gray-500 font-medium">
-                  {pick.sport}
-                </span>
-                <span className="text-gray-300">·</span>
-                <span className="text-xs text-gray-500">
-                  {pick.pickType}
-                </span>
-                <span className="text-gray-300">·</span>
-                <span className="text-xs font-semibold text-blue-600 flex items-center gap-0.5">
-                  <TrendingUp size={11} />
-                  {pick.confidence}U
-                </span>
               </div>
             </div>
           </Link>
 
-          <div className="flex items-center space-x-1 ml-2">
+          <div className="flex items-center space-x-2 ml-2">
             {pick.isPremium && (
-              <div className="flex items-center space-x-1 px-2 py-1 bg-green-600 text-white rounded text-xs font-semibold">
-                <Lock size={11} />
+              <div className="flex items-center space-x-1 px-2.5 py-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-md text-xs font-bold shadow-sm">
+                <Lock size={12} />
                 <span>${pick.price}</span>
               </div>
             )}
-            <button className="p-1.5 hover:bg-gray-200 rounded-full transition-colors">
-              <MoreHorizontal size={18} className="text-gray-500" />
-            </button>
           </div>
         </div>
 
-        {/* Status Badge - More subtle placement */}
-        <div className="mb-4">
-          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.text} ${status.border} border`}>
+        {/* Sport, Type, Confidence, and Status in a single row */}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="flex items-center space-x-2 flex-wrap gap-1.5">
+            <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-semibold">
+              {pick.sport}
+            </span>
+            <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium">
+              {pick.pickType}
+            </span>
+            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold flex items-center gap-1">
+              <TrendingUp size={12} />
+              {pick.confidence}U
+            </span>
+          </div>
+          <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold ${status.bg} ${status.text} ${status.border} border uppercase tracking-wide`}>
             {status.label}
           </span>
         </div>
 
-        {/* Matchup */}
-        <h3 className="font-bold text-subheader-2 text-gray-900 mb-3 leading-tight">
+        {/* Matchup - Hero element */}
+        <h3 className="font-bold text-xl text-gray-900 mb-4 leading-tight">
           {pick.matchup}
         </h3>
+
+        {/* Game Info Card - Prominent display */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-lg p-4 mb-4 border border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Game Date */}
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-gray-500 mb-1">Game Date</span>
+              <span className="text-sm font-bold text-gray-900">
+                {new Date(pick.gameDate).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </span>
+              <span className="text-xs text-gray-500 mt-0.5">
+                {new Date(pick.gameDate).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit'
+                })}
+              </span>
+            </div>
+
+            {/* Odds */}
+            {pick.odds && (
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-gray-500 mb-1">Odds</span>
+                <span className="text-lg font-bold text-primary">{pick.odds}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Lock Status */}
+          {pick.isLocked ? (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-3 py-1.5 rounded-md">
+                <Lock size={14} />
+                <span className="text-xs font-bold">LOCKED - Event Started</span>
+              </div>
+            </div>
+          ) : timeUntilLock ? (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="inline-flex items-center space-x-2 bg-amber-100 text-amber-800 px-3 py-1.5 rounded-md">
+                <span className="text-xs font-bold">{timeUntilLock}</span>
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         {/* Content */}
         {(pick.isPremium && !isUnlocked && !isOwnPick) || pick.isPremiumLocked ? (
@@ -532,104 +569,72 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
               </div>
             )}
             {pick.details && (
-              <p className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
-                {pick.details}
-              </p>
-            )}
-            {pick.odds && (
-              <div className="mt-4 inline-flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                <span className="text-sm font-semibold text-gray-700">Odds:</span>
-                <span className="text-sm font-bold text-primary">{pick.odds}</span>
+              <div className="bg-white rounded-lg p-4 border border-gray-100">
+                <p className="text-gray-700 leading-relaxed text-sm whitespace-pre-line">
+                  {pick.details}
+                </p>
               </div>
             )}
           </div>
         )}
-
-        {/* Game Date & Lock Status */}
-        <div className="mt-5 pt-4 border-t border-gray-100 space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <p className="text-gray-500 flex items-center space-x-2">
-              <span className="font-medium">Game Date:</span>
-              <span>
-                {new Date(pick.gameDate).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </span>
-            </p>
-          </div>
-          {pick.isLocked && (
-            <div className="inline-flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg border border-red-200">
-              <Lock size={14} />
-              <span className="text-sm font-medium">Locked - Event Started</span>
-            </div>
-          )}
-          {!pick.isLocked && timeUntilLock && (
-            <div className="inline-flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-lg border border-yellow-200">
-              <span className="text-sm font-medium">{timeUntilLock}</span>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Engagement Section */}
-      <div className="border-t border-gray-100 px-6 py-3 bg-gray-50/50">
+      <div className="border-t border-gray-200 px-5 py-3 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center justify-between max-w-full">
           {/* Left actions */}
-          <div className="flex items-center space-x-1 sm:space-x-2 flex-1 min-w-0">
+          <div className="flex items-center space-x-1 flex-1 min-w-0">
             {/* Upvote button */}
             <button
               onClick={() => handleVote('UPVOTE')}
-              className={`group flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`group flex items-center space-x-1 px-2.5 py-1.5 rounded-md transition-all duration-200 ${
                 userVoteType === 'UPVOTE'
-                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
               title="Upvote"
             >
               <ThumbsUp
-                size={18}
+                size={16}
                 className={`${userVoteType === 'UPVOTE' ? 'fill-green-600' : ''} transition-all`}
               />
-              <span className="text-sm font-medium">{upvotes}</span>
+              <span className="text-xs font-semibold">{upvotes}</span>
             </button>
 
             {/* Downvote button */}
             <button
               onClick={() => handleVote('DOWNVOTE')}
-              className={`group flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`group flex items-center space-x-1 px-2.5 py-1.5 rounded-md transition-all duration-200 ${
                 userVoteType === 'DOWNVOTE'
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
               title="Downvote"
             >
               <ThumbsDown
-                size={18}
+                size={16}
                 className={`${userVoteType === 'DOWNVOTE' ? 'fill-red-600' : ''} transition-all`}
               />
-              <span className="text-sm font-medium">{downvotes}</span>
+              <span className="text-xs font-semibold">{downvotes}</span>
             </button>
 
             <button
               onClick={toggleComments}
-              className={`group flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+              className={`group flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md transition-colors ${
                 showComments
-                  ? 'bg-primary/10 text-primary'
+                  ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
               title="Comments"
             >
-              <MessageCircle size={18} className={showComments ? 'fill-primary' : ''} />
-              <span className="text-sm font-medium">{commentCount || comments.length}</span>
+              <MessageCircle size={16} className={showComments ? 'fill-blue-600' : ''} />
+              <span className="text-xs font-semibold">{commentCount || comments.length}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-              <Eye size={18} />
-              <span className="text-sm font-medium">{views}</span>
-            </button>
+            <div className="flex items-center space-x-1 px-2.5 py-1.5 text-gray-500">
+              <Eye size={16} />
+              <span className="text-xs font-semibold">{views}</span>
+            </div>
           </div>
 
           {/* Right actions */}
@@ -637,10 +642,10 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
             <div className="relative">
               <button
                 onClick={() => setShowShareMenu(!showShareMenu)}
-                className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
                 title="Share"
               >
-                <Share2 size={18} />
+                <Share2 size={16} />
               </button>
 
               {/* Share Menu */}
@@ -698,16 +703,16 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
 
             <button
               onClick={handleSave}
-              className={`p-2 rounded-lg transition-all duration-200 ${
+              className={`p-1.5 rounded-md transition-all duration-200 ${
                 isSaved
-                  ? 'bg-primary/10 text-primary'
+                  ? 'bg-amber-100 text-amber-600'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
               title={isSaved ? 'Saved' : 'Save'}
             >
               <Bookmark
-                size={18}
-                className={isSaved ? 'fill-primary' : ''}
+                size={16}
+                className={isSaved ? 'fill-amber-600' : ''}
               />
             </button>
           </div>

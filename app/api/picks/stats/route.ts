@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { cache, CacheKeys } from '@/lib/cache'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,37 +13,63 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid pickIds' }, { status: 400 })
     }
 
-    // Get stats for all picks
-    const [upvotes, downvotes, comments, picks, unlocks, userVotes, userBookmarks, userPurchases] = await Promise.all([
-      // Get upvote counts grouped by pickId
-      prisma.like.groupBy({
-        by: ['pickId'],
-        where: { pickId: { in: pickIds }, voteType: 'UPVOTE' },
-        _count: true,
-      }),
-      // Get downvote counts grouped by pickId
-      prisma.like.groupBy({
-        by: ['pickId'],
-        where: { pickId: { in: pickIds }, voteType: 'DOWNVOTE' },
-        _count: true,
-      }),
-      // Get comment counts grouped by pickId
-      prisma.comment.groupBy({
-        by: ['pickId'],
-        where: { pickId: { in: pickIds } },
-        _count: true,
-      }),
-      // Get view counts from picks
-      prisma.pick.findMany({
-        where: { id: { in: pickIds } },
-        select: { id: true, viewCount: true },
-      }),
-      // Get unlock counts grouped by pickId
-      prisma.purchase.groupBy({
-        by: ['pickId'],
-        where: { pickId: { in: pickIds } },
-        _count: true,
-      }),
+    // Limit batch size to prevent abuse
+    if (pickIds.length > 100) {
+      return NextResponse.json({ error: 'Too many pickIds. Maximum 100 allowed.' }, { status: 400 })
+    }
+
+    // Try to get cached aggregated stats (non-user-specific)
+    const cacheKey = CacheKeys.pickStatsMany(pickIds)
+    let aggregatedStats = cache.get<{
+      upvotes: Array<{ pickId: string; _count: number }>
+      downvotes: Array<{ pickId: string; _count: number }>
+      comments: Array<{ pickId: string; _count: number }>
+      picks: Array<{ id: string; viewCount: number }>
+      unlocks: Array<{ pickId: string; _count: number }>
+    }>(cacheKey)
+
+    if (!aggregatedStats) {
+      // Cache miss - fetch aggregated stats
+      const [upvotes, downvotes, comments, picks, unlocks] = await Promise.all([
+        // Get upvote counts grouped by pickId
+        prisma.like.groupBy({
+          by: ['pickId'],
+          where: { pickId: { in: pickIds }, voteType: 'UPVOTE' },
+          _count: true,
+        }),
+        // Get downvote counts grouped by pickId
+        prisma.like.groupBy({
+          by: ['pickId'],
+          where: { pickId: { in: pickIds }, voteType: 'DOWNVOTE' },
+          _count: true,
+        }),
+        // Get comment counts grouped by pickId
+        prisma.comment.groupBy({
+          by: ['pickId'],
+          where: { pickId: { in: pickIds } },
+          _count: true,
+        }),
+        // Get view counts from picks
+        prisma.pick.findMany({
+          where: { id: { in: pickIds } },
+          select: { id: true, viewCount: true },
+        }),
+        // Get unlock counts grouped by pickId
+        prisma.purchase.groupBy({
+          by: ['pickId'],
+          where: { pickId: { in: pickIds } },
+          _count: true,
+        }),
+      ])
+
+      aggregatedStats = { upvotes, downvotes, comments, picks, unlocks }
+
+      // Cache for 2 minutes (stats change but not every second)
+      cache.set(cacheKey, aggregatedStats, 120)
+    }
+
+    // Always fetch user-specific data fresh (can't be cached globally)
+    const [userVotes, userBookmarks, userPurchases] = await Promise.all([
       // Get user's votes
       session?.user?.id
         ? prisma.like.findMany({
@@ -65,6 +92,8 @@ export async function POST(request: NextRequest) {
           })
         : [],
     ])
+
+    const { upvotes, downvotes, comments, picks, unlocks } = aggregatedStats
 
     // Create maps for quick lookup
     const upvoteMap = new Map(upvotes.map((l) => [l.pickId, l._count]))
