@@ -107,8 +107,8 @@ export default function Navbar() {
               <Image
                 src="/logos/logo.png"
                 alt="EdgeBook"
-                width={160}
-                height={42}
+                width={184}
+                height={48}
                 className="transition-transform duration-200 group-hover:scale-105"
                 priority
               />
