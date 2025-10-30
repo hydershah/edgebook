@@ -8,6 +8,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import AccountStatusBanner from '@/components/AccountStatusBanner'
+import GameSelector from '@/components/GameSelector'
+import PredictionSelector from '@/components/PredictionSelector'
 
 const pickSchema = z
   .object({
@@ -34,11 +36,19 @@ const pickSchema = z
     details: z
       .string()
       .trim()
-      .min(10, 'Pick details must be at least 10 characters')
-      .max(1000, 'Pick details must be less than 1000 characters')
-      .refine((val) => val.split(/\s+/).length >= 3, {
-        message: 'Pick details must contain at least 3 words',
-      }),
+      .optional()
+      .transform((value) => {
+        // Handle empty strings and whitespace-only strings
+        if (!value || value.length === 0) return undefined
+        return value
+      })
+      .refine(
+        (val) => {
+          if (!val) return true
+          return val.length <= 1000
+        },
+        { message: 'Pick details must be less than 1000 characters' }
+      ),
     odds: z
       .string()
       .trim()
@@ -61,9 +71,6 @@ const pickSchema = z
       .min(1, 'Game date is required')
       .refine((val) => !isNaN(Date.parse(val)), {
         message: 'Invalid date format',
-      })
-      .refine((val) => new Date(val) > new Date(), {
-        message: 'Game date must be in the future',
       }),
     confidence: z
       .number({
@@ -148,6 +155,27 @@ export default function CreatePickPage() {
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+
+  // Game selection state
+  const [selectedGame, setSelectedGame] = useState<{
+    id: string;
+    league: string;
+    homeTeam: string;
+    awayTeam: string;
+    scheduled: string;
+    status: string;
+    venue?: string;
+  } | null>(null)
+
+  // Prediction data state
+  const [predictionData, setPredictionData] = useState<{
+    predictionType: 'WINNER' | 'SPREAD' | 'TOTAL';
+    predictedWinner?: string;
+    spreadValue?: number;
+    spreadTeam?: string;
+    totalValue?: number;
+    totalPrediction?: 'OVER' | 'UNDER';
+  } | null>(null)
 
   const {
     register,
@@ -255,6 +283,18 @@ export default function CreatePickPage() {
     setUploadError(null)
   }, [])
 
+  const handleGameSelect = useCallback((game: any) => {
+    setSelectedGame(game)
+
+    // Auto-populate matchup field
+    const matchup = `${game.awayTeam} @ ${game.homeTeam}`
+    setValue('matchup', matchup)
+
+    // Auto-populate game date
+    const gameDate = new Date(game.scheduled).toISOString().split('T')[0]
+    setValue('gameDate', gameDate)
+  }, [setValue])
+
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null)
 
@@ -264,13 +304,28 @@ export default function CreatePickPage() {
         pickType: values.pickType,
         sport: values.sport,
         matchup: values.matchup.trim(),
-        details: values.details.trim(),
+        details: values.details ? values.details.trim() : undefined,
         odds: values.odds || undefined,
         gameDate: values.gameDate,
         confidence: values.confidence,
         isPremium: values.isPremium,
         price: values.isPremium && values.price ? Number.parseFloat(values.price) : undefined,
         mediaUrl: uploadedFileUrl || undefined,
+
+        // Sportradar game data
+        sportradarGameId: selectedGame?.id || undefined,
+        homeTeam: selectedGame?.homeTeam || undefined,
+        awayTeam: selectedGame?.awayTeam || undefined,
+        gameStatus: selectedGame?.status || undefined,
+        venue: selectedGame?.venue || undefined,
+
+        // Prediction data
+        predictionType: predictionData?.predictionType || undefined,
+        predictedWinner: predictionData?.predictedWinner || undefined,
+        spreadValue: predictionData?.spreadValue || undefined,
+        spreadTeam: predictionData?.spreadTeam || undefined,
+        totalValue: predictionData?.totalValue || undefined,
+        totalPrediction: predictionData?.totalPrediction || undefined,
       }
 
       const response = await fetch('/api/picks', {
@@ -430,19 +485,48 @@ export default function CreatePickPage() {
               )}
             </div>
 
+            {/* Game Selector - Shows after sport is selected */}
+            {sport && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Select Game
+                </label>
+                <GameSelector
+                  sport={sport}
+                  onGameSelect={handleGameSelect}
+                  selectedGameId={selectedGame?.id}
+                />
+              </div>
+            )}
+
+            {/* Prediction Type Selector - Shows after game is selected */}
+            {selectedGame && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Make Your Prediction
+                </label>
+                <PredictionSelector
+                  sport={sport as any}
+                  game={selectedGame}
+                  onPredictionChange={setPredictionData}
+                />
+              </div>
+            )}
+
             {/* Matchup Input */}
             <div>
               <input
                 id="matchup"
                 type="text"
-                placeholder="What's the matchup? (e.g., Lakers vs Warriors)"
+                placeholder="Select a game to auto-fill matchup"
                 className={`w-full px-4 py-3 border-0 border-b-2 ${
                   errors.matchup ? 'border-red-400' : 'border-gray-200'
-                } focus:border-primary focus:ring-0 focus:outline-none text-lg placeholder-gray-400 transition-colors`}
+                } focus:border-primary focus:ring-0 focus:outline-none text-lg placeholder-gray-400 transition-colors bg-gray-50`}
                 {...register('matchup')}
                 aria-invalid={errors.matchup ? 'true' : 'false'}
                 aria-describedby={errors.matchup ? 'matchup-error' : undefined}
-                disabled={isSubmitting || isAccountBlocked}
+                readOnly
+                disabled={isSubmitting || isAccountBlocked || !selectedGame}
               />
               {errors.matchup && (
                 <p id="matchup-error" className="mt-2 text-xs text-red-600">
@@ -453,10 +537,13 @@ export default function CreatePickPage() {
 
             {/* Pick Details Textarea */}
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="details">
+                Pick Details (Optional)
+              </label>
               <div className="relative">
                 <textarea
                   id="details"
-                  placeholder="Share your pick details, analysis, and reasoning... (e.g., Lakers -5.5, LeBron Over 25.5 points)"
+                  placeholder="Share your pick details, analysis, and reasoning... (Optional)"
                   className={`w-full px-4 py-3 border ${
                     errors.details ? 'border-red-400' : 'border-gray-200'
                   } rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none min-h-[120px] resize-none placeholder-gray-400 transition-all`}
@@ -477,54 +564,29 @@ export default function CreatePickPage() {
               )}
             </div>
 
-            {/* Odds and Game Date Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="odds">
-                  <TrendingUp className="inline w-4 h-4 mr-1" />
-                  Odds
-                </label>
-                <input
-                  id="odds"
-                  type="text"
-                  placeholder="-110"
-                  className={`w-full px-4 py-2.5 border ${
-                    errors.odds ? 'border-red-400' : 'border-gray-300'
-                  } rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all`}
-                  {...register('odds')}
-                  aria-invalid={errors.odds ? 'true' : 'false'}
-                  aria-describedby={errors.odds ? 'odds-error' : undefined}
-                  disabled={isSubmitting || isAccountBlocked}
-                />
-                {errors.odds && (
-                  <p id="odds-error" className="mt-1 text-xs text-red-600">
-                    {errors.odds.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="gameDate">
-                  <Calendar className="inline w-4 h-4 mr-1" />
-                  Game Date
-                </label>
-                <input
-                  id="gameDate"
-                  type="date"
-                  className={`w-full px-4 py-2.5 border ${
-                    errors.gameDate ? 'border-red-400' : 'border-gray-300'
-                  } rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all`}
-                  {...register('gameDate')}
-                  aria-invalid={errors.gameDate ? 'true' : 'false'}
-                  aria-describedby={errors.gameDate ? 'gameDate-error' : undefined}
-                  disabled={isSubmitting || isAccountBlocked}
-                />
-                {errors.gameDate && (
-                  <p id="gameDate-error" className="mt-1 text-xs text-red-600">
-                    {errors.gameDate.message}
-                  </p>
-                )}
-              </div>
+            {/* Odds Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="odds">
+                <TrendingUp className="inline w-4 h-4 mr-1" />
+                Odds (Optional)
+              </label>
+              <input
+                id="odds"
+                type="text"
+                placeholder="-110"
+                className={`w-full px-4 py-2.5 border ${
+                  errors.odds ? 'border-red-400' : 'border-gray-300'
+                } rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all`}
+                {...register('odds')}
+                aria-invalid={errors.odds ? 'true' : 'false'}
+                aria-describedby={errors.odds ? 'odds-error' : undefined}
+                disabled={isSubmitting || isAccountBlocked}
+              />
+              {errors.odds && (
+                <p id="odds-error" className="mt-1 text-xs text-red-600">
+                  {errors.odds.message}
+                </p>
+              )}
             </div>
 
             {/* Media Upload */}

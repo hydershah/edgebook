@@ -105,7 +105,7 @@ export default function Navbar() {
           <div className="flex items-center flex-shrink-0">
             <Link href="/" className="flex items-center group">
               <Image
-                src="/logos/logo.png"
+                src="/logos/logo.svg"
                 alt="EdgeBook"
                 width={184}
                 height={48}

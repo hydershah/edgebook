@@ -43,7 +43,7 @@ interface PickCardProps {
     pickType: string
     sport: string
     matchup: string
-    details: string
+    details: string | null
     odds?: string | null
     confidence: number
     status: string
@@ -531,9 +531,11 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
                 <span className="text-sm font-medium text-green-800">You&apos;ve unlocked this premium pick</span>
               </div>
             )}
-            <p className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
-              {pick.details}
-            </p>
+            {pick.details && (
+              <p className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
+                {pick.details}
+              </p>
+            )}
             {pick.odds && (
               <div className="mt-4 inline-flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
                 <span className="text-sm font-semibold text-gray-700">Odds:</span>

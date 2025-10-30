@@ -24,11 +24,19 @@ const createPickSchema = z
     details: z
       .string()
       .trim()
-      .min(10, 'Pick details must be at least 10 characters')
-      .max(1000, 'Pick details must be less than 1000 characters')
-      .refine((val) => val.split(/\s+/).length >= 3, {
-        message: 'Pick details must contain at least 3 words',
-      }),
+      .optional()
+      .transform((value) => {
+        // Handle empty strings and whitespace-only strings
+        if (!value || value.length === 0) return undefined
+        return value
+      })
+      .refine(
+        (val) => {
+          if (!val) return true
+          return val.length <= 1000
+        },
+        { message: 'Pick details must be less than 1000 characters' }
+      ),
     odds: z
       .string()
       .trim()
@@ -52,10 +60,7 @@ const createPickSchema = z
       .refine((val) => !isNaN(Date.parse(val)), {
         message: 'Invalid date format',
       })
-      .transform((str) => new Date(str))
-      .refine((date) => date > new Date(), {
-        message: 'Game date must be in the future',
-      }),
+      .transform((str) => new Date(str)),
     confidence: z
       .number({
         required_error: 'Confidence level is required',
@@ -80,6 +85,21 @@ const createPickSchema = z
       .string()
       .url('Media URL must be a valid URL')
       .optional(),
+
+    // Sportradar game data
+    sportradarGameId: z.string().optional(),
+    homeTeam: z.string().optional(),
+    awayTeam: z.string().optional(),
+    gameStatus: z.string().optional(),
+    venue: z.string().optional(),
+
+    // Prediction data
+    predictionType: z.enum(['WINNER', 'SPREAD', 'TOTAL']).optional(),
+    predictedWinner: z.string().optional(),
+    spreadValue: z.number().optional(),
+    spreadTeam: z.string().optional(),
+    totalValue: z.number().optional(),
+    totalPrediction: z.enum(['OVER', 'UNDER']).optional(),
   })
   .superRefine((data, ctx) => {
     // Validate that premium picks have a valid price
@@ -264,6 +284,21 @@ export async function POST(request: NextRequest) {
         confidence: data.confidence,
         isPremium: data.isPremium,
         price: data.price,
+
+        // Sportradar game data
+        sportradarGameId: data.sportradarGameId,
+        homeTeam: data.homeTeam,
+        awayTeam: data.awayTeam,
+        gameStatus: data.gameStatus,
+        venue: data.venue,
+
+        // Prediction data
+        predictionType: data.predictionType,
+        predictedWinner: data.predictedWinner,
+        spreadValue: data.spreadValue,
+        spreadTeam: data.spreadTeam,
+        totalValue: data.totalValue,
+        totalPrediction: data.totalPrediction,
       },
       include: {
         user: {

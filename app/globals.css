@@ -255,6 +255,14 @@
     animation-delay: 600ms;
   }
 
+  .animation-delay-2000 {
+    animation-delay: 2000ms;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4000ms;
+  }
+
   /* Initial state for animations */
   [data-animate] {
     opacity: 0;

@@ -150,7 +150,7 @@ model Pick {
   pickType   PickType
   sport      Sport
   matchup    String
-  details    String
+  details    String?
   odds       String?
   mediaUrl   String?
   gameDate   DateTime
@@ -162,6 +162,27 @@ model Pick {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   viewCount  Int        @default(0)
+
+  // Sportradar integration fields
+  sportradarGameId String? // Link to Sportradar game
+  homeTeam         String? // Home team name from Sportradar
+  awayTeam         String? // Away team name from Sportradar
+  gameStatus       String? // Game status: scheduled, inprogress, complete, closed, etc.
+  homeScore        Int? // Final home team score
+  awayScore        Int? // Final away team score
+  venue            String? // Venue name
+
+  // Prediction fields
+  predictionType   PredictionType? // Type of prediction: WINNER, SPREAD, TOTAL
+  predictedWinner  String? // Team name for WINNER predictions
+  spreadValue      Float? // Spread value (e.g., -5.5)
+  spreadTeam       String? // Team covering the spread
+  totalValue       Float? // Total points value (e.g., 215.5)
+  totalPrediction  String? // "OVER" or "UNDER"
+
+  // Result tracking
+  resultDetermined Boolean @default(false) // Whether result has been calculated
+  resultNotes      String? // Additional notes about the result
 
   // Moderation fields
   moderationStatus ModerationStatus @default(APPROVED)
@@ -191,6 +212,12 @@ model Pick {
   @@index([sport, createdAt])
   @@index([moderationStatus])
   @@index([reportCount])
+  @@index([sportradarGameId])
+  @@index([gameStatus])
+  @@index([sport, gameDate])
+  @@index([predictionType])
+  @@index([resultDetermined])
+  @@index([gameStatus, resultDetermined])
 }
 
 model Purchase {
@@ -418,6 +445,12 @@ enum PickStatus {
 enum PickType {
   SINGLE
   PARLAY
+}
+
+enum PredictionType {
+  WINNER    // Predict which team will win
+  SPREAD    // Predict team will cover the spread
+  TOTAL     // Predict over/under total points
 }
 
 enum Sport {
