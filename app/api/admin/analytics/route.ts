@@ -3,6 +3,10 @@ import { requireAdmin, getRequestMetadata } from "@/lib/adminMiddleware";
 import { prisma } from "@/lib/prisma";
 import { logAudit, AuditAction, AuditResource } from "@/lib/audit";
 
+// PERFORMANCE: Simple in-memory cache for analytics data (5 minute TTL)
+const analyticsCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export async function GET(req: NextRequest) {
   const authCheck = await requireAdmin(req);
   if (!authCheck.authorized) {
@@ -12,6 +16,16 @@ export async function GET(req: NextRequest) {
   const { session } = authCheck;
   const { searchParams } = new URL(req.url);
   const days = parseInt(searchParams.get("days") || "30");
+
+  // PERFORMANCE: Check cache first
+  const cacheKey = `analytics_${days}`
+  const cached = analyticsCache.get(cacheKey)
+  const now = Date.now()
+
+  if (cached && (now - cached.timestamp) < CACHE_TTL) {
+    console.log(`Analytics cache hit for ${days} days`)
+    return NextResponse.json(cached.data)
+  }
 
   try {
     const startDate = new Date();
@@ -142,7 +156,7 @@ export async function GET(req: NextRequest) {
       details: { days },
     });
 
-    return NextResponse.json({
+    const responseData = {
       users: {
         total: totalUsers,
         new: newUsers,
@@ -188,7 +202,13 @@ export async function GET(req: NextRequest) {
         startDate: startDate.toISOString(),
         endDate: new Date().toISOString(),
       },
-    });
+    };
+
+    // PERFORMANCE: Store in cache
+    analyticsCache.set(cacheKey, { data: responseData, timestamp: Date.now() })
+    console.log(`Analytics cache updated for ${days} days`)
+
+    return NextResponse.json(responseData);
   } catch (error: any) {
     console.error("Error fetching analytics:", error);
 

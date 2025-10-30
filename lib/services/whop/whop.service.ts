@@ -76,14 +76,49 @@ export class WhopService {
         body: body ? JSON.stringify(body) : undefined,
       });
 
-      const data = await response.json();
+      // Check if response has content before parsing
+      const contentType = response.headers.get('content-type');
+      let data: any = null;
+
+      if (contentType && contentType.includes('application/json')) {
+        const text = await response.text();
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', {
+            endpoint,
+            status: response.status,
+            text: text.substring(0, 200), // Log first 200 chars
+            error: parseError,
+          });
+
+          if (!response.ok) {
+            return {
+              success: false,
+              error: {
+                code: 'INVALID_RESPONSE',
+                message: `API returned invalid JSON: ${response.status} ${response.statusText}`,
+              },
+            };
+          }
+        }
+      } else if (!response.ok) {
+        // Non-JSON error response
+        const text = await response.text();
+        console.error('Non-JSON error response:', {
+          endpoint,
+          status: response.status,
+          contentType,
+          text: text.substring(0, 200),
+        });
+      }
 
       if (!response.ok) {
         return {
           success: false,
           error: {
-            code: data.code || 'WHOP_API_ERROR',
-            message: data.message || 'Unknown error occurred',
+            code: data?.code || 'WHOP_API_ERROR',
+            message: data?.message || `HTTP ${response.status}: ${response.statusText}`,
           },
         };
       }

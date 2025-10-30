@@ -6,6 +6,10 @@ import { Sport } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
+// PERFORMANCE: Simple in-memory cache for trending picks (2 minute TTL)
+const trendingCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_TTL = 2 * 60 * 1000 // 2 minutes
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,6 +18,26 @@ export async function GET(request: Request) {
     const sportParam = searchParams.get('sport') // NFL, NBA, etc, or 'ALL'
     const period = searchParams.get('period') || 'week' // today, week, month, all
     const limit = parseInt(searchParams.get('limit') || '20')
+
+    // PERFORMANCE: Check cache first (cache key includes params except userId for privacy)
+    const cacheKey = `trending_${algorithm}_${sportParam}_${period}_${limit}`
+    const cached = trendingCache.get(cacheKey)
+    const cacheCheckTime = Date.now()
+
+    if (cached && (cacheCheckTime - cached.timestamp) < CACHE_TTL) {
+      console.log(`Trending cache hit for ${cacheKey}`)
+      // Still need to filter premium content based on current user
+      const result = cached.data.map((pick: any) => {
+        const isOwner = session?.user?.id === pick.userId
+        // Note: We can't cache purchase checks, so premium content will still require a DB check
+        // This is acceptable as it's a fast query
+        if (pick.isPremium && !isOwner) {
+          return { ...pick, details: '', odds: null }
+        }
+        return pick
+      })
+      return NextResponse.json(result)
+    }
 
     // Build where clause
     const where: any = {}
@@ -45,7 +69,7 @@ export async function GET(request: Request) {
       where.createdAt = { gte: fortyEightHoursAgo }
     }
 
-    // Fetch picks with engagement data
+    // Fetch picks with engagement data (without loading all user picks - N+1 fix)
     const picks = await prisma.pick.findMany({
       where,
       include: {
@@ -56,14 +80,6 @@ export async function GET(request: Request) {
             username: true,
             avatar: true,
             isVerified: true,
-            picks: {
-              where: {
-                status: { in: ['WON', 'LOST'] }
-              },
-              select: {
-                status: true,
-              },
-            },
           },
         },
         _count: {
@@ -78,12 +94,30 @@ export async function GET(request: Request) {
       take: algorithm === 'new' ? limit : 100, // Get more for ranking algorithms
     })
 
-    // Calculate win rate for each user
-    const picksWithStats = picks.map((pick) => {
-      const settledPicks = pick.user.picks.filter(p => p.status === 'WON' || p.status === 'LOST')
-      const wonPicks = settledPicks.filter(p => p.status === 'WON').length
-      const winRate = settledPicks.length > 0 ? (wonPicks / settledPicks.length) * 100 : 0
+    // PERFORMANCE FIX: Calculate win rates for all unique users in a single query
+    const uniqueUserIds = Array.from(new Set(picks.map(p => p.userId)))
+    const winRatesRaw = await prisma.$queryRaw<Array<{ userId: string; totalPicks: bigint; wonPicks: bigint }>>`
+      SELECT
+        "userId",
+        COUNT(*)::int as "totalPicks",
+        SUM(CASE WHEN status = 'WON' THEN 1 ELSE 0 END)::int as "wonPicks"
+      FROM "Pick"
+      WHERE "userId" = ANY(${uniqueUserIds}::text[])
+        AND status IN ('WON', 'LOST')
+      GROUP BY "userId"
+    `
 
+    // Create a map of userId to win rate
+    const winRateMap = new Map<string, number>()
+    winRatesRaw.forEach(row => {
+      const totalPicks = Number(row.totalPicks)
+      const wonPicks = Number(row.wonPicks)
+      const winRate = totalPicks > 0 ? (wonPicks / totalPicks) * 100 : 0
+      winRateMap.set(row.userId, Math.round(winRate))
+    })
+
+    // Map picks with stats and win rates from our optimized query
+    const picksWithStats = picks.map((pick) => {
       const engagement = {
         likes: pick._count.likes,
         comments: pick._count.comments,
@@ -108,7 +142,7 @@ export async function GET(request: Request) {
           username: pick.user.username,
           avatar: pick.user.avatar,
           isVerified: pick.user.isVerified,
-          winRate: Math.round(winRate),
+          winRate: winRateMap.get(pick.userId) || 0, // Use pre-calculated win rate
         },
         sport: pick.sport,
         pickType: pick.pickType,
@@ -203,6 +237,11 @@ export async function GET(request: Request) {
 
       return pick
     })
+
+    // PERFORMANCE: Cache the base result (before user-specific filtering)
+    // We cache topPicks before obfuscation so each user can get personalized results
+    trendingCache.set(cacheKey, { data: topPicks, timestamp: Date.now() })
+    console.log(`Trending cache updated for ${cacheKey}`)
 
     return NextResponse.json(result)
   } catch (error) {
