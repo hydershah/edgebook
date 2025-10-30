@@ -21,7 +21,6 @@ export default function Navbar() {
   const { data: session } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement | null>(null)
   const avatarInitial = session?.user?.name?.[0]?.toUpperCase() || 'U'
 
@@ -34,14 +33,6 @@ export default function Navbar() {
     [],
   )
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   useEffect(() => {
     if (!isProfileMenuOpen) return
@@ -71,6 +62,19 @@ export default function Navbar() {
     setIsProfileMenuOpen(false)
   }, [pathname, mobileMenuOpen])
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
+
   const handleSignOut = () => {
     setIsProfileMenuOpen(false)
     signOut({ callbackUrl: '/auth/signin' })
@@ -84,8 +88,18 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      {/* Mobile Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden animate-in fade-in"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-24 w-full items-center gap-6">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
@@ -140,14 +154,14 @@ export default function Navbar() {
               <>
                 <Link
                   href="/createpick"
-                  className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md md:inline-flex"
+                  className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md lg:inline-flex"
                 >
                   <PlusSquare size={18} />
                   <span>Create Pick</span>
                 </Link>
                 <button
                   type="button"
-                  className="hidden rounded-full border border-gray-200 bg-white p-2 text-gray-500 transition hover:text-primary md:flex"
+                  className="hidden rounded-full border border-gray-200 bg-white p-2 text-gray-500 transition hover:text-primary lg:flex"
                   aria-label="Notifications"
                 >
                   <Bell size={20} />
@@ -213,13 +227,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/signin"
-                  className="hidden rounded-full px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-primary md:inline-flex"
+                  className="hidden rounded-full px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-primary lg:inline-flex"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
+                  className="hidden lg:inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
                 >
                   Get Started
                 </Link>
@@ -229,7 +243,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(prev => !prev)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:text-primary md:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:text-primary lg:hidden"
               aria-label="Toggle navigation"
               aria-expanded={mobileMenuOpen}
             >
@@ -238,71 +252,75 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Search */}
-        <div className="pb-3 lg:hidden">
-          <UserSearch
-            variant="mobile"
-            className="mt-1"
-            onUserSelect={handleUserSelect}
-            placeholder="Search for experts or friends…"
-          />
-        </div>
-
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="space-y-2 border-t border-gray-200 py-4">
-              {navItems.map(({ href, label, icon: Icon, imageSrc }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                    isActive(href)
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {imageSrc ? (
-                    <Image src={imageSrc} alt={label} width={18} height={18} />
-                  ) : Icon ? (
-                    <Icon size={18} />
-                  ) : null}
-                  <span>{label}</span>
-                </Link>
-              ))}
+          <div className="lg:hidden animate-in slide-in-from-top-2 duration-200 -mx-4 sm:-mx-6">
+            <div className="border-t border-gray-200 bg-white px-4 sm:px-6">
+              {/* Search inside mobile menu */}
+              <div className="py-4 border-b border-gray-100">
+                <UserSearch
+                  variant="mobile"
+                  className="w-full"
+                  onUserSelect={handleUserSelect}
+                  placeholder="Search for experts or friends…"
+                />
+              </div>
 
-              {session?.user ? (
-                <Link
-                  href="/createpick"
-                  className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <PlusSquare size={18} />
-                  <span>Create Pick</span>
-                </Link>
-              ) : (
-                <div className="flex gap-2 px-1">
+              {/* Menu Items */}
+              <div className="space-y-2 py-4">
+                {navItems.map(({ href, label, icon: Icon, imageSrc }) => (
                   <Link
-                    href="/auth/signin"
-                    className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-semibold text-gray-700 transition hover:border-primary hover:text-primary"
+                    key={href}
+                    href={href}
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      isActive(href)
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Sign In
+                    {imageSrc ? (
+                      <Image src={imageSrc} alt={label} width={18} height={18} />
+                    ) : Icon ? (
+                      <Icon size={18} />
+                    ) : null}
+                    <span>{label}</span>
                   </Link>
+                ))}
+
+                {session?.user ? (
                   <Link
-                    href="/auth/signup"
-                    className="flex-1 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
+                    href="/createpick"
+                    className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Join
+                    <PlusSquare size={18} />
+                    <span>Create Pick</span>
                   </Link>
-                </div>
-              )}
+                ) : (
+                  <div className="flex gap-2">
+                    <Link
+                      href="/auth/signin"
+                      className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-semibold text-gray-700 transition hover:border-primary hover:text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/auth/signup"
+                      className="flex-1 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Join
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
       </div>
     </nav>
+    </>
   )
 }
