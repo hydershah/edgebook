@@ -18,11 +18,9 @@ export class SportradarBaseService {
   protected baseUrls: SportradarConfig['baseUrls'];
 
   constructor() {
-    const apiKey = process.env.SPORTRADAR_API_KEY;
-
-    if (!apiKey) {
-      throw new Error('SPORTRADAR_API_KEY is not configured');
-    }
+    // Lazy-load API key to avoid build-time errors
+    // The key will be validated when the first request is made
+    const apiKey = process.env.SPORTRADAR_API_KEY || '';
 
     this.apiKey = apiKey;
     this.baseUrls = {
@@ -34,6 +32,15 @@ export class SportradarBaseService {
   }
 
   /**
+   * Validates that the API key is configured
+   */
+  protected validateApiKey(): void {
+    if (!this.apiKey) {
+      throw new Error('SPORTRADAR_API_KEY is not configured');
+    }
+  }
+
+  /**
    * Makes an authenticated request to Sportradar API
    */
   protected async request<T>(
@@ -41,6 +48,9 @@ export class SportradarBaseService {
     endpoint: string,
     options?: RequestInit
   ): Promise<T> {
+    // Validate API key before making requests
+    this.validateApiKey();
+
     const baseUrl = this.baseUrls[sport];
     const url = `${baseUrl}${endpoint}?api_key=${this.apiKey}`;
 
