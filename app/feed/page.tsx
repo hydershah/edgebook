@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { TrendingUp, Sparkles } from 'lucide-react'
 import PickFeed from '@/components/PickFeed'
+import AccountStatusBanner from '@/components/AccountStatusBanner'
+import CreatePostBox from '@/components/CreatePostBox'
 
 interface TrendingSport {
   sport: string
@@ -70,6 +72,9 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Account Status Banner */}
+      <AccountStatusBanner />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Sidebar - Hidden on mobile */}
@@ -140,6 +145,9 @@ export default function FeedPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Create Post Box */}
+            <CreatePostBox />
 
             {/* Header - Sticky Tabs */}
             <div className="sticky top-0 z-20 bg-white border-b border-gray-200 -mx-4 sm:-mx-6 lg:mx-0 lg:rounded-t-2xl overflow-hidden backdrop-blur-lg bg-white/95">

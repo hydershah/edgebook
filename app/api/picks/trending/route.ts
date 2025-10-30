@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Sport } from '@prisma/client'
 
@@ -6,6 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
     const { searchParams } = new URL(request.url)
     const algorithm = searchParams.get('algorithm') || 'hot' // hot, rising, top, new
     const sportParam = searchParams.get('sport') // NFL, NBA, etc, or 'ALL'
@@ -165,7 +168,41 @@ export async function GET(request: Request) {
     }
 
     // Return top picks, remove score fields
-    const result = rankedPicks.slice(0, limit).map(({ totalEngagement, ageInHours, ...pick }) => pick)
+    const topPicks = rankedPicks.slice(0, limit).map(({ totalEngagement, ageInHours, ...pick }) => pick)
+
+    // SECURITY: Protect premium content
+    // Fetch all purchases for this user in a single query (fix N+1)
+    const purchasedPickIds = new Set<string>()
+    if (session?.user?.id) {
+      const pickIds = topPicks.filter(p => p.isPremium).map(p => p.id)
+      if (pickIds.length > 0) {
+        const purchases = await prisma.purchase.findMany({
+          where: {
+            userId: session.user.id,
+            pickId: { in: pickIds },
+          },
+          select: { pickId: true },
+        })
+        purchases.forEach(p => purchasedPickIds.add(p.pickId))
+      }
+    }
+
+    // Obfuscate premium content for unpurchased picks
+    const result = topPicks.map((pick) => {
+      const isOwner = session?.user?.id === pick.userId
+      const hasPurchased = purchasedPickIds.has(pick.id)
+
+      // SECURITY: Completely hide content for premium picks that haven't been purchased
+      if (pick.isPremium && !isOwner && !hasPurchased) {
+        return {
+          ...pick,
+          details: '', // Completely hide details
+          odds: null, // Hide odds
+        }
+      }
+
+      return pick
+    })
 
     return NextResponse.json(result)
   } catch (error) {

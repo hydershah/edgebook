@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Upload, X, Image as ImageIcon, Video, Calendar, TrendingUp, Lock, DollarSign } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import AccountStatusBanner from '@/components/AccountStatusBanner'
 
 const pickSchema = z
   .object({
@@ -140,9 +141,13 @@ type CreatePickFormValues = z.infer<typeof pickSchema>
 
 export default function CreatePickPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const [formError, setFormError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const {
     register,
@@ -174,6 +179,48 @@ export default function CreatePickPage() {
   const details = watch('details') || ''
   const detailsLength = details.length
 
+  const uploadFile = useCallback(async (file: File) => {
+    setIsUploading(true)
+    setUploadError(null)
+
+    try {
+      // Validate file size (max 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        setUploadError('File is too large. Maximum size is 50MB.')
+        return
+      }
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime']
+      if (!allowedTypes.includes(file.type)) {
+        setUploadError('Invalid file type. Please upload an image (JPEG, PNG, GIF) or video (MP4, MOV).')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.error || 'Failed to upload file')
+      }
+
+      const data = await response.json()
+      setUploadedFile(file)
+      setUploadedFileUrl(data.url)
+    } catch (error) {
+      console.error('Upload error:', error)
+      setUploadError(error instanceof Error ? error.message : 'Failed to upload file')
+    } finally {
+      setIsUploading(false)
+    }
+  }, [])
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -188,7 +235,24 @@ export default function CreatePickPage() {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    // TODO: Handle file upload
+
+    const files = e.dataTransfer.files
+    if (files && files[0]) {
+      uploadFile(files[0])
+    }
+  }, [uploadFile])
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files[0]) {
+      uploadFile(files[0])
+    }
+  }, [uploadFile])
+
+  const removeFile = useCallback(() => {
+    setUploadedFile(null)
+    setUploadedFileUrl(null)
+    setUploadError(null)
   }, [])
 
   const onSubmit = handleSubmit(async (values) => {
@@ -206,6 +270,7 @@ export default function CreatePickPage() {
         confidence: values.confidence,
         isPremium: values.isPremium,
         price: values.isPremium && values.price ? Number.parseFloat(values.price) : undefined,
+        mediaUrl: uploadedFileUrl || undefined,
       }
 
       const response = await fetch('/api/picks', {
@@ -217,6 +282,11 @@ export default function CreatePickPage() {
       if (response.ok) {
         router.push('/feed')
         return
+      }
+
+      // If 403 (forbidden), refresh session to show updated account status
+      if (response.status === 403) {
+        await update()
       }
 
       const data = await response.json().catch(() => null)
@@ -249,6 +319,15 @@ export default function CreatePickPage() {
 
   const isAuthenticated = status === 'authenticated'
 
+  // Check account status for suspension/ban
+  const user = session?.user as any
+  const accountStatus = user?.accountStatus
+  const suspendedUntil = user?.suspendedUntil
+  const now = new Date()
+  const isSuspended = accountStatus === 'SUSPENDED' && suspendedUntil && new Date(suspendedUntil) > now
+  const isBanned = accountStatus === 'BANNED'
+  const isAccountBlocked = isSuspended || isBanned
+
   const sports = [
     { value: 'NFL', label: 'NFL', icon: '🏈' },
     { value: 'NBA', label: 'NBA', icon: '🏀' },
@@ -261,6 +340,9 @@ export default function CreatePickPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Account Status Banner */}
+      <AccountStatusBanner />
+
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* User Profile Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-4">
@@ -300,7 +382,7 @@ export default function CreatePickPage() {
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAccountBlocked}
                 >
                   Single Pick
                 </button>
@@ -312,7 +394,7 @@ export default function CreatePickPage() {
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAccountBlocked}
                 >
                   Parlay
                 </button>
@@ -336,7 +418,7 @@ export default function CreatePickPage() {
                         ? 'bg-primary text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isAccountBlocked}
                   >
                     <span className="mr-1">{s.icon}</span>
                     {s.label}
@@ -360,7 +442,7 @@ export default function CreatePickPage() {
                 {...register('matchup')}
                 aria-invalid={errors.matchup ? 'true' : 'false'}
                 aria-describedby={errors.matchup ? 'matchup-error' : undefined}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isAccountBlocked}
               />
               {errors.matchup && (
                 <p id="matchup-error" className="mt-2 text-xs text-red-600">
@@ -382,7 +464,7 @@ export default function CreatePickPage() {
                   {...register('details')}
                   aria-invalid={errors.details ? 'true' : 'false'}
                   aria-describedby={errors.details ? 'details-error' : undefined}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAccountBlocked}
                 />
                 <div className="absolute bottom-3 right-3 text-xs text-gray-400">
                   {detailsLength}/1000
@@ -412,7 +494,7 @@ export default function CreatePickPage() {
                   {...register('odds')}
                   aria-invalid={errors.odds ? 'true' : 'false'}
                   aria-describedby={errors.odds ? 'odds-error' : undefined}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAccountBlocked}
                 />
                 {errors.odds && (
                   <p id="odds-error" className="mt-1 text-xs text-red-600">
@@ -435,7 +517,7 @@ export default function CreatePickPage() {
                   {...register('gameDate')}
                   aria-invalid={errors.gameDate ? 'true' : 'false'}
                   aria-describedby={errors.gameDate ? 'gameDate-error' : undefined}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAccountBlocked}
                 />
                 {errors.gameDate && (
                   <p id="gameDate-error" className="mt-1 text-xs text-red-600">
@@ -446,27 +528,94 @@ export default function CreatePickPage() {
             </div>
 
             {/* Media Upload */}
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
-                dragActive
-                  ? 'border-primary bg-primary/5'
-                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex justify-center space-x-4 mb-3">
-                <ImageIcon className="text-gray-400" size={32} />
-                <Video className="text-gray-400" size={32} />
-              </div>
-              <p className="text-sm font-medium text-gray-700 mb-1">
-                Add photos or videos
-              </p>
-              <p className="text-xs text-gray-500">
-                Drag and drop or click to upload
-              </p>
+            <div>
+              {!uploadedFile && !isUploading && (
+                <label
+                  htmlFor="file-upload"
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  className={`block border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
+                    dragActive
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/gif,video/mp4,video/quicktime"
+                    onChange={handleFileSelect}
+                    disabled={isSubmitting || isUploading || isAccountBlocked}
+                  />
+                  <div className="flex justify-center space-x-4 mb-3">
+                    <ImageIcon className="text-gray-400" size={32} />
+                    <Video className="text-gray-400" size={32} />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Add photos or videos
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Drag and drop or click to upload (max 50MB)
+                  </p>
+                </label>
+              )}
+
+              {isUploading && (
+                <div className="border-2 border-gray-300 rounded-xl p-6 text-center bg-gray-50">
+                  <div className="flex justify-center mb-3">
+                    <Upload className="text-primary animate-pulse" size={32} />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">Uploading...</p>
+                </div>
+              )}
+
+              {uploadedFile && uploadedFileUrl && (
+                <div className="border-2 border-green-300 bg-green-50 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      {uploadedFile.type.startsWith('image/') ? (
+                        <img
+                          src={uploadedFileUrl}
+                          alt="Uploaded preview"
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Video className="text-gray-500" size={32} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {uploadedFile.name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <p className="text-xs text-green-600 mt-1 font-medium">
+                        Upload complete!
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeFile}
+                      className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors"
+                      disabled={isSubmitting || isAccountBlocked}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {uploadError && (
+                <div className="mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                  {uploadError}
+                </div>
+              )}
             </div>
 
             {/* Confidence Level */}
@@ -483,7 +632,7 @@ export default function CreatePickPage() {
                   step={1}
                   className="w-full h-2.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-primary slider"
                   {...register('confidence', { valueAsNumber: true })}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAccountBlocked}
                   style={{
                     background: `linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) ${((confidenceValue - 1) / 4) * 100}%, #d1d5db ${((confidenceValue - 1) / 4) * 100}%, #d1d5db 100%)`
                   }}
@@ -535,7 +684,7 @@ export default function CreatePickPage() {
                     type="checkbox"
                     className="mt-1.5 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary pointer-events-none"
                     {...register('isPremium')}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isAccountBlocked}
                   />
                 </div>
 
@@ -558,10 +707,10 @@ export default function CreatePickPage() {
                         {...register('price')}
                         aria-invalid={errors.price ? 'true' : 'false'}
                         aria-describedby={errors.price ? 'price-error' : undefined}
-                        disabled={isSubmitting}
-                        onKeyPress={(e) => {
+                        disabled={isSubmitting || isAccountBlocked}
+                        onKeyDown={(e) => {
                           // Only allow numbers, decimal point, and control keys
-                          if (!/[\d.]/.test(e.key) && !['Backspace', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                          if (!/[\d.]/.test(e.key) && !['Backspace', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'Delete'].includes(e.key)) {
                             e.preventDefault()
                           }
                         }}
@@ -589,7 +738,7 @@ export default function CreatePickPage() {
             <button
               type="submit"
               className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isAccountBlocked}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">

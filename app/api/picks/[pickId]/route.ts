@@ -103,15 +103,13 @@ export async function GET(
       isUnlocked: !!isUnlocked,
     }
 
-    // SECURITY: Obfuscate content for premium picks that haven't been purchased
+    // SECURITY: Completely hide content for premium picks that haven't been purchased
     if (pick.isPremium && !isOwner && !hasPurchased) {
-      // Return truncated/obfuscated content
-      const truncatedDetails = pick.details.substring(0, 50) + '...'
-
+      // Return NO content details - prevent any content leakage
       return NextResponse.json({
         pick: {
           ...pick,
-          details: truncatedDetails,
+          details: '', // Completely hide details
           odds: null, // Hide odds for locked premium picks
           isLocked,
           isPremiumLocked: true,

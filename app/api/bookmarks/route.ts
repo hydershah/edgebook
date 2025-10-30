@@ -51,16 +51,33 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Fetch purchases for premium content protection
+    const premiumPickIds = bookmarks
+      .filter(b => b.pick.isPremium)
+      .map(b => b.pick.id)
+
+    const purchasedPickIds = new Set<string>()
+    if (premiumPickIds.length > 0) {
+      const purchases = await prisma.purchase.findMany({
+        where: {
+          userId: session.user.id,
+          pickId: { in: premiumPickIds },
+        },
+        select: { pickId: true },
+      })
+      purchases.forEach(p => purchasedPickIds.add(p.pickId))
+    }
+
     // Transform the data to match the format expected by PickCard
     const picks = bookmarks.map((bookmark) => {
       const pick = bookmark.pick
       const userLike = pick.likes[0]
       const isBookmarked = pick.bookmarks.length > 0
+      const isOwner = session.user.id === pick.userId
+      const hasPurchased = purchasedPickIds.has(pick.id)
 
-      // Calculate upvotes and downvotes
-      const allLikes = pick._count.likes
-      // We need to get actual upvotes/downvotes, so let's fetch them separately
-      // For now, we'll use a simplified approach
+      // SECURITY: Completely hide content for premium picks that haven't been purchased
+      const shouldHideContent = pick.isPremium && !isOwner && !hasPurchased
 
       return {
         id: pick.id,
@@ -68,8 +85,8 @@ export async function GET(request: NextRequest) {
         pickType: pick.pickType,
         sport: pick.sport,
         matchup: pick.matchup,
-        details: pick.details,
-        odds: pick.odds,
+        details: shouldHideContent ? '' : pick.details,
+        odds: shouldHideContent ? null : pick.odds,
         confidence: pick.confidence,
         status: pick.status,
         isPremium: pick.isPremium,
@@ -87,7 +104,7 @@ export async function GET(request: NextRequest) {
           unlocks: 0,
           userVoteType: userLike?.voteType || null,
           isBookmarked,
-          isUnlocked: false,
+          isUnlocked: hasPurchased,
         },
       }
     })

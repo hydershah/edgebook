@@ -234,20 +234,24 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
     setModal({
       isOpen: true,
       title: 'Unlock Premium Pick',
-      message: `Unlock this premium pick for $${pick.price}? This will be deducted from your wallet.`,
+      message: `Unlock this premium pick for $${pick.price}? You'll be redirected to complete your purchase securely.`,
       type: 'confirm',
       onConfirm: async () => {
         setModal({ ...modal, isOpen: false })
         setIsUnlocking(true)
 
         try {
-          const response = await fetch(`/api/picks/${pick.id}/unlock`, {
+          const response = await fetch(`/api/picks/${pick.id}/purchase`, {
             method: 'POST',
           })
 
           const data = await response.json()
 
-          if (response.ok) {
+          if (response.ok && data.payment?.checkoutUrl) {
+            // Redirect to Whop checkout
+            window.location.href = data.payment.checkoutUrl
+          } else if (response.ok) {
+            // Payment completed immediately (shouldn't happen with Whop)
             setModal({
               isOpen: true,
               title: 'Success!',
@@ -255,23 +259,24 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
               type: 'success',
             })
             onStatsUpdate?.()
+            setIsUnlocking(false)
           } else {
             setModal({
               isOpen: true,
-              title: 'Unlock Failed',
-              message: data.error || 'Failed to unlock pick. Please try again.',
+              title: 'Purchase Failed',
+              message: data.error || 'Failed to initiate purchase. Please try again.',
               type: 'error',
             })
+            setIsUnlocking(false)
           }
         } catch (error) {
-          console.error('Error unlocking pick:', error)
+          console.error('Error purchasing pick:', error)
           setModal({
             isOpen: true,
             title: 'Error',
-            message: 'An error occurred while unlocking the pick. Please try again.',
+            message: 'An error occurred while processing your purchase. Please try again.',
             type: 'error',
           })
-        } finally {
           setIsUnlocking(false)
         }
       },
@@ -487,7 +492,7 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
         </h3>
 
         {/* Content */}
-        {pick.isPremium && !isUnlocked && !isOwnPick ? (
+        {(pick.isPremium && !isUnlocked && !isOwnPick) || pick.isPremiumLocked ? (
           <div className="relative rounded-xl bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 border-2 border-green-200 p-8 text-center">
             <div className="mb-4">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-green-700 rounded-full shadow-lg mb-3">

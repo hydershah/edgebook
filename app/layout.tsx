@@ -1,18 +1,11 @@
 import type { Metadata } from 'next'
 import { Manrope } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import RouteLoader from '@/components/RouteLoader'
 import { Suspense } from 'react'
 import ThemeFavicon from '@/components/ThemeFavicon'
-import dynamic from 'next/dynamic'
-
-const EmailVerificationBanner = dynamic(
-  () => import('@/components/EmailVerificationBanner'),
-  { ssr: false }
-)
+import ConditionalLayout from '@/components/ConditionalLayout'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -72,14 +65,7 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <RouteLoader />
           </Suspense>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <EmailVerificationBanner />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </AuthProvider>
       </body>
     </html>

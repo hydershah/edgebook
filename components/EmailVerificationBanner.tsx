@@ -13,13 +13,8 @@ export default function EmailVerificationBanner() {
   const [messageType, setMessageType] = useState<'success' | 'error' | null>(null)
   const [shouldShow, setShouldShow] = useState(false)
 
-  // Only refresh session once on mount to get latest verification status
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user && !session.user.emailVerified) {
-      update()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Only run once on mount
+  // No automatic refresh on mount - session is already fresh from server
+  // Only refresh when user explicitly clicks "I've verified"
 
   // Determine if we should show the banner (with anti-flicker delay)
   useEffect(() => {

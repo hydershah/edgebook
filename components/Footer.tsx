@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { X, Facebook, Instagram, Linkedin } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -33,6 +34,11 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Resources</h3>
             <ul className="space-y-2">
+              <li>
+                <Link href="/support" className="text-sm text-gray-600 hover:text-gray-900">
+                  Support & Contact
+                </Link>
+              </li>
               <li>
                 <a href="tel:1-800-522-4700" className="text-sm text-gray-600 hover:text-gray-900">
                   Help: 1-800-522-4700
@@ -84,6 +90,47 @@ export default function Footer() {
             <p className="text-sm text-gray-500">
               © {currentYear} EdgeBook. All rights reserved.
             </p>
+
+            {/* Social Media Icons */}
+            <div className="flex items-center gap-4">
+              <a
+                href="https://twitter.com/edgebook"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
+                aria-label="X (formerly Twitter)"
+              >
+                <X size={20} />
+              </a>
+              <a
+                href="https://facebook.com/edgebook"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook size={20} />
+              </a>
+              <a
+                href="https://instagram.com/edgebook"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram size={20} />
+              </a>
+              <a
+                href="https://linkedin.com/company/edgebook"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin size={20} />
+              </a>
+            </div>
+
             <div className="flex items-center gap-6">
               <Link href="/legal/terms" className="text-sm text-gray-500 hover:text-gray-900">
                 Terms
@@ -93,6 +140,9 @@ export default function Footer() {
               </Link>
               <Link href="/legal/disclosures" className="text-sm text-gray-500 hover:text-gray-900">
                 Disclosures
+              </Link>
+              <Link href="/support" className="text-sm text-gray-500 hover:text-gray-900">
+                Support
               </Link>
             </div>
           </div>

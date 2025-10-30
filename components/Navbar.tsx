@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Home, TrendingUp, PlusSquare, Menu, X, Bell, ChevronDown } from 'lucide-react'
+import { Home, TrendingUp, Menu, X, Bell, ChevronDown } from 'lucide-react'
 import UserSearch from '@/components/UserSearch'
 
 type NavItem = {
@@ -152,13 +152,6 @@ export default function Navbar() {
 
             {session?.user ? (
               <>
-                <Link
-                  href="/createpick"
-                  className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md lg:inline-flex"
-                >
-                  <PlusSquare size={18} />
-                  <span>Create Pick</span>
-                </Link>
                 <button
                   type="button"
                   className="hidden rounded-full border border-gray-200 bg-white p-2 text-gray-500 transition hover:text-primary lg:flex"
@@ -288,16 +281,7 @@ export default function Navbar() {
                   </Link>
                 ))}
 
-                {session?.user ? (
-                  <Link
-                    href="/createpick"
-                    className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <PlusSquare size={18} />
-                    <span>Create Pick</span>
-                  </Link>
-                ) : (
+                {session?.user ? null : (
                   <div className="flex gap-2">
                     <Link
                       href="/auth/signin"

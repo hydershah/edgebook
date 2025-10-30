@@ -76,6 +76,10 @@ const createPickSchema = z
       .max(10000, 'Price cannot exceed $10,000')
       .multipleOf(0.01, 'Price can only have up to 2 decimal places')
       .optional(),
+    mediaUrl: z
+      .string()
+      .url('Media URL must be a valid URL')
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // Validate that premium picks have a valid price
@@ -165,11 +169,11 @@ export async function GET(request: NextRequest) {
       const isLocked = pick.lockedAt ? now >= pick.lockedAt : false
       const hasPurchased = purchasedPickIds.has(pick.id)
 
-      // Obfuscate content for premium picks that haven't been purchased
+      // SECURITY: Completely hide content for premium picks that haven't been purchased
       if (pick.isPremium && !isOwner && !hasPurchased) {
         return {
           ...pick,
-          details: pick.details.substring(0, 50) + '...',
+          details: '', // Completely hide details - no truncation/preview
           odds: null,
           isLocked,
           isPremiumLocked: true,
@@ -197,11 +201,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check account status - suspended and banned users cannot create picks
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        accountStatus: true,
+        suspendedUntil: true,
+        banReason: true,
+        suspensionReason: true,
+      },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Check if user is banned
+    if (user.accountStatus === 'BANNED') {
+      return NextResponse.json({
+        error: 'Your account has been permanently banned. You cannot create picks.',
+        reason: user.banReason || 'Account banned',
+        contactSupport: 'support@edgebook.ai'
+      }, { status: 403 })
+    }
+
+    // Check if user is suspended and suspension hasn't expired
+    const now = new Date()
+    if (user.accountStatus === 'SUSPENDED' && user.suspendedUntil && user.suspendedUntil > now) {
+      return NextResponse.json({
+        error: 'Your account is temporarily suspended. You cannot create picks.',
+        reason: user.suspensionReason || 'Account suspended',
+        suspendedUntil: user.suspendedUntil.toISOString(),
+        contactSupport: 'support@edgebook.ai'
+      }, { status: 403 })
+    }
+
     const body = await request.json()
     const data = createPickSchema.parse(body)
 
     // CRITICAL: Prevent creating picks for events that have already started
-    const now = new Date()
     const LOCK_GRACE_PERIOD = 5 * 60 * 1000 // 5 minutes in milliseconds
     const lockTime = new Date(data.gameDate.getTime() - LOCK_GRACE_PERIOD)
 
@@ -220,6 +258,7 @@ export async function POST(request: NextRequest) {
         matchup: data.matchup,
         details: data.details,
         odds: data.odds,
+        mediaUrl: data.mediaUrl,
         gameDate: data.gameDate,
         lockedAt: lockTime,
         confidence: data.confidence,

@@ -108,24 +108,56 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name
         token.picture = user.image
 
-        // Fetch emailVerified status from database on initial sign in
+        // Fetch emailVerified, role, and account status from database on initial sign in
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { emailVerified: true }
+          select: {
+            emailVerified: true,
+            role: true,
+            accountStatus: true,
+            suspendedUntil: true,
+            suspensionReason: true,
+            banReason: true,
+            warningCount: true,
+            lastWarningAt: true,
+          }
         })
         token.emailVerified = dbUser?.emailVerified || null
+        token.role = dbUser?.role || 'USER'
+        token.accountStatus = dbUser?.accountStatus || 'ACTIVE'
+        token.suspendedUntil = dbUser?.suspendedUntil || null
+        token.suspensionReason = dbUser?.suspensionReason || null
+        token.banReason = dbUser?.banReason || null
+        token.warningCount = dbUser?.warningCount || 0
+        token.lastWarningAt = dbUser?.lastWarningAt || null
       }
 
-      // Only refresh emailVerified from database if:
+      // Only refresh emailVerified, role, and account status from database if:
       // 1. Session is being manually updated (trigger === 'update'), OR
       // 2. Email is not yet verified (we need to check if it's been verified)
       // Once verified, we never need to check again
       if (trigger === 'update' && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { emailVerified: true }
+          select: {
+            emailVerified: true,
+            role: true,
+            accountStatus: true,
+            suspendedUntil: true,
+            suspensionReason: true,
+            banReason: true,
+            warningCount: true,
+            lastWarningAt: true,
+          }
         })
         token.emailVerified = dbUser?.emailVerified || null
+        token.role = dbUser?.role || 'USER'
+        token.accountStatus = dbUser?.accountStatus || 'ACTIVE'
+        token.suspendedUntil = dbUser?.suspendedUntil || null
+        token.suspensionReason = dbUser?.suspensionReason || null
+        token.banReason = dbUser?.banReason || null
+        token.warningCount = dbUser?.warningCount || 0
+        token.lastWarningAt = dbUser?.lastWarningAt || null
 
         if (session) {
           token = { ...token, ...session.user }
@@ -140,6 +172,13 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string
         session.user.name = token.name as string
         session.user.emailVerified = token.emailVerified as Date | null
+        ;(session.user as any).role = token.role as string || 'USER'
+        ;(session.user as any).accountStatus = token.accountStatus as string || 'ACTIVE'
+        ;(session.user as any).suspendedUntil = token.suspendedUntil as Date | null
+        ;(session.user as any).suspensionReason = token.suspensionReason as string | null
+        ;(session.user as any).banReason = token.banReason as string | null
+        ;(session.user as any).warningCount = token.warningCount as number || 0
+        ;(session.user as any).lastWarningAt = token.lastWarningAt as Date | null
       }
       return session
     },
