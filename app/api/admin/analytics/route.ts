@@ -78,7 +78,46 @@ export async function GET(req: NextRequest) {
       where: { accountStatus: "SUSPENDED" },
     });
 
-    // Daily stats for charts (last 30 days)
+    // Daily stats for charts (last 30 days) - Optimized with single queries
+    const [dailyUsersRaw, dailyPicksRaw, dailyRevenueRaw] = await Promise.all([
+      // Fetch daily user signups
+      prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+        SELECT DATE("createdAt") as date, COUNT(*)::int as count
+        FROM "User"
+        WHERE "createdAt" >= ${startDate}
+        GROUP BY DATE("createdAt")
+        ORDER BY date DESC
+      `,
+      // Fetch daily picks created
+      prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+        SELECT DATE("createdAt") as date, COUNT(*)::int as count
+        FROM "Pick"
+        WHERE "createdAt" >= ${startDate}
+        GROUP BY DATE("createdAt")
+        ORDER BY date DESC
+      `,
+      // Fetch daily revenue
+      prisma.$queryRaw<Array<{ date: string; amount: number }>>`
+        SELECT DATE("createdAt") as date, COALESCE(SUM(amount), 0)::float as amount
+        FROM "Purchase"
+        WHERE "createdAt" >= ${startDate}
+        GROUP BY DATE("createdAt")
+        ORDER BY date DESC
+      `,
+    ]);
+
+    // Create a map for quick lookups
+    const dailyUsersMap = new Map(
+      dailyUsersRaw.map((d) => [d.date.toString(), Number(d.count)])
+    );
+    const dailyPicksMap = new Map(
+      dailyPicksRaw.map((d) => [d.date.toString(), Number(d.count)])
+    );
+    const dailyRevenueMap = new Map(
+      dailyRevenueRaw.map((d) => [d.date.toString(), Number(d.amount)])
+    );
+
+    // Fill in all days including those with zero activity
     const dailyUsers: any[] = [];
     const dailyRevenue: any[] = [];
     const dailyPicks: any[] = [];
@@ -87,33 +126,11 @@ export async function GET(req: NextRequest) {
       const dayStart = new Date();
       dayStart.setDate(dayStart.getDate() - i);
       dayStart.setHours(0, 0, 0, 0);
-
-      const dayEnd = new Date(dayStart);
-      dayEnd.setHours(23, 59, 59, 999);
-
-      const [userCount, pickCount, revenue] = await Promise.all([
-        prisma.user.count({
-          where: {
-            createdAt: { gte: dayStart, lte: dayEnd },
-          },
-        }),
-        prisma.pick.count({
-          where: {
-            createdAt: { gte: dayStart, lte: dayEnd },
-          },
-        }),
-        prisma.purchase.aggregate({
-          where: {
-            createdAt: { gte: dayStart, lte: dayEnd },
-          },
-          _sum: { amount: true },
-        }),
-      ]);
-
       const dateStr = dayStart.toISOString().split("T")[0];
-      dailyUsers.push({ date: dateStr, count: userCount });
-      dailyPicks.push({ date: dateStr, count: pickCount });
-      dailyRevenue.push({ date: dateStr, amount: revenue._sum.amount || 0 });
+
+      dailyUsers.push({ date: dateStr, count: dailyUsersMap.get(dateStr) || 0 });
+      dailyPicks.push({ date: dateStr, count: dailyPicksMap.get(dateStr) || 0 });
+      dailyRevenue.push({ date: dateStr, amount: dailyRevenueMap.get(dateStr) || 0 });
     }
 
     await logAudit({

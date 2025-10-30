@@ -594,6 +594,7 @@ model Payout {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([userId, status]) // Optimized for duplicate payout prevention queries
 }
 
 model WebhookEvent {

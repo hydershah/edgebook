@@ -362,67 +362,113 @@ export class PaymentService {
       throw new Error('Invalid payout amount: must be greater than zero');
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        payoutMethod: true,
-        cryptoWalletAddress: true,
-        bankAccountId: true,
-        whopUserId: true,
-      },
-    });
+    // Use a transaction to prevent concurrent payout creation
+    return await prisma.$transaction(async (tx) => {
+      // Check for existing pending or processing payouts
+      const existingPayout = await tx.payout.findFirst({
+        where: {
+          userId,
+          status: {
+            in: ['PENDING', 'PROCESSING'],
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
 
-    if (!user?.whopUserId) {
-      throw new Error('User does not have Whop account configured');
-    }
-
-    // Validate payout method and required payment details
-    if (!user.payoutMethod) {
-      throw new Error('Payout method not configured. Please set your preferred payout method.');
-    }
-
-    // Determine destination based on payout method and validate
-    let destination: string;
-    let method: 'crypto' | 'bank';
-
-    if (user.payoutMethod === 'CRYPTO') {
-      if (!user.cryptoWalletAddress || user.cryptoWalletAddress.trim() === '') {
-        throw new Error('Crypto wallet address is required for crypto payouts. Please configure your crypto wallet address.');
+      // If there's already a pending/processing payout, return it or throw error
+      if (existingPayout) {
+        console.log(`Duplicate payout request prevented for user ${userId}. Existing payout: ${existingPayout.id}`);
+        throw new Error(
+          `A payout request is already being processed. Please wait for it to complete before requesting another payout. (Payout ID: ${existingPayout.id})`
+        );
       }
-      destination = user.cryptoWalletAddress.trim();
-      method = 'crypto';
-    } else {
-      // Assuming any non-CRYPTO method is bank-related
-      if (!user.bankAccountId || user.bankAccountId.trim() === '') {
-        throw new Error('Bank account ID is required for bank payouts. Please configure your bank account details.');
+
+      // Fetch user details within the transaction
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: {
+          payoutMethod: true,
+          cryptoWalletAddress: true,
+          bankAccountId: true,
+          whopUserId: true,
+        },
+      });
+
+      if (!user?.whopUserId) {
+        throw new Error('User does not have Whop account configured');
       }
-      destination = user.bankAccountId.trim();
-      method = 'bank';
-    }
 
-    // Initiate transfer with Whop - only after all validations pass
-    const result = await whopService.transferToUser({
-      userId: user.whopUserId,
-      amount,
-      currency: 'USD',
-      method,
-      destination,
-      description: `Creator payout for earnings`,
-    });
+      // Validate payout method and required payment details
+      if (!user.payoutMethod) {
+        throw new Error('Payout method not configured. Please set your preferred payout method.');
+      }
 
-    if (!result.success) {
-      throw new Error(result.error?.message || 'Payout failed');
-    }
+      // Determine destination based on payout method and validate
+      let destination: string;
+      let method: 'crypto' | 'bank';
 
-    // Create payout record
-    return prisma.payout.create({
-      data: {
-        userId,
-        amount,
-        method: user.payoutMethod,
-        status: 'PROCESSING',
-        whopTransferId: result.data?.id,
-      },
+      if (user.payoutMethod === 'CRYPTO') {
+        if (!user.cryptoWalletAddress || user.cryptoWalletAddress.trim() === '') {
+          throw new Error('Crypto wallet address is required for crypto payouts. Please configure your crypto wallet address.');
+        }
+        destination = user.cryptoWalletAddress.trim();
+        method = 'crypto';
+      } else {
+        // Assuming any non-CRYPTO method is bank-related
+        if (!user.bankAccountId || user.bankAccountId.trim() === '') {
+          throw new Error('Bank account ID is required for bank payouts. Please configure your bank account details.');
+        }
+        destination = user.bankAccountId.trim();
+        method = 'bank';
+      }
+
+      // Create payout record first with PENDING status to prevent race conditions
+      const payout = await tx.payout.create({
+        data: {
+          userId,
+          amount,
+          method: user.payoutMethod,
+          status: 'PENDING',
+          whopTransferId: null, // Will be updated after successful transfer
+        },
+      });
+
+      try {
+        // Initiate transfer with Whop - only after creating the payout record
+        const result = await whopService.transferToUser({
+          userId: user.whopUserId,
+          amount,
+          currency: 'USD',
+          method,
+          destination,
+          description: `Creator payout for earnings`,
+        });
+
+        if (!result.success) {
+          // Delete the payout record if transfer fails
+          await tx.payout.delete({
+            where: { id: payout.id },
+          });
+          throw new Error(result.error?.message || 'Payout failed');
+        }
+
+        // Update payout record with transfer ID and status
+        return await tx.payout.update({
+          where: { id: payout.id },
+          data: {
+            status: 'PROCESSING',
+            whopTransferId: result.data?.id,
+          },
+        });
+      } catch (error) {
+        // If Whop transfer fails, delete the payout record to allow retry
+        await tx.payout.delete({
+          where: { id: payout.id },
+        });
+        throw error;
+      }
     });
   }
 
