@@ -17,7 +17,7 @@ export async function GET(
     const league = searchParams.get('league')?.toUpperCase();
 
     // Validate league parameter
-    const validLeagues: SportLeague[] = ['NBA', 'MLB', 'NHL', 'NFL'];
+    const validLeagues: SportLeague[] = ['NBA', 'MLB', 'NHL', 'NFL', 'NCAAFB', 'NCAAMB'];
     if (!league || !validLeagues.includes(league as SportLeague)) {
       return NextResponse.json(
         {

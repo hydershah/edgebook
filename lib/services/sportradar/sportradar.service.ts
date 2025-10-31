@@ -7,8 +7,10 @@ import { nbaService } from './nba.service';
 import { mlbService } from './mlb.service';
 import { nhlService } from './nhl.service';
 import { nflService } from './nfl.service';
+import { ncaafbService } from './ncaafb.service';
+import { ncaambService } from './ncaamb.service';
 
-export type SportLeague = 'NBA' | 'MLB' | 'NHL' | 'NFL';
+export type SportLeague = 'NBA' | 'MLB' | 'NHL' | 'NFL' | 'NCAAFB' | 'NCAAMB';
 
 export interface UnifiedGame {
   id: string;
@@ -33,6 +35,8 @@ export class SportradarService {
   private mlb = mlbService;
   private nhl = nhlService;
   private nfl = nflService;
+  private ncaafb = ncaafbService;
+  private ncaamb = ncaambService;
 
   /**
    * Helper to format team name (handles both market+name and name-only formats)
@@ -52,11 +56,13 @@ export class SportradarService {
 
     try {
       // Fetch from all leagues in parallel
-      const [nbaGames, mlbGames, nhlGames, nflGames] = await Promise.allSettled([
+      const [nbaGames, mlbGames, nhlGames, nflGames, ncaafbGames, ncaambGames] = await Promise.allSettled([
         this.nba.getUpcomingGames(),
         this.mlb.getUpcomingGames(),
         this.nhl.getUpcomingGames(),
         this.nfl.getUpcomingGames(),
+        this.ncaafb.getUpcomingGames(),
+        this.ncaamb.getUpcomingGames(),
       ]);
 
       // NBA games
@@ -130,6 +136,42 @@ export class SportradarService {
             awayScore: game.away_points,
             venue: game.venue?.name,
           });
+        }
+      }
+
+      // NCAA Football games
+      if (ncaafbGames.status === 'fulfilled') {
+        for (const game of ncaafbGames.value.games) {
+          allGames.push({
+            id: game.id,
+            league: 'NCAAFB',
+            homeTeam: this.formatTeamName(game.home),
+            awayTeam: this.formatTeamName(game.away),
+            scheduled: game.scheduled,
+            status: game.status,
+            homeScore: game.home_points,
+            awayScore: game.away_points,
+            venue: game.venue?.name,
+          });
+        }
+      }
+
+      // NCAA Men's Basketball games
+      if (ncaambGames.status === 'fulfilled') {
+        for (const schedule of ncaambGames.value) {
+          for (const game of schedule.games) {
+            allGames.push({
+              id: game.id,
+              league: 'NCAAMB',
+              homeTeam: this.formatTeamName(game.home),
+              awayTeam: this.formatTeamName(game.away),
+              scheduled: game.scheduled,
+              status: game.status,
+              homeScore: game.home_points,
+              awayScore: game.away_points,
+              venue: game.venue?.name,
+            });
+          }
         }
       }
 
@@ -225,6 +267,42 @@ export class SportradarService {
           }
           break;
         }
+        case 'NCAAFB': {
+          const ncaafbSchedule = await this.ncaafb.getUpcomingGames();
+          for (const game of ncaafbSchedule.games) {
+            games.push({
+              id: game.id,
+              league: 'NCAAFB',
+              homeTeam: this.formatTeamName(game.home),
+              awayTeam: this.formatTeamName(game.away),
+              scheduled: game.scheduled,
+              status: game.status,
+              homeScore: game.home_points,
+              awayScore: game.away_points,
+              venue: game.venue?.name,
+            });
+          }
+          break;
+        }
+        case 'NCAAMB': {
+          const schedules = await this.ncaamb.getUpcomingGames();
+          for (const schedule of schedules) {
+            for (const game of schedule.games) {
+              games.push({
+                id: game.id,
+                league: 'NCAAMB',
+                homeTeam: this.formatTeamName(game.home),
+                awayTeam: this.formatTeamName(game.away),
+                scheduled: game.scheduled,
+                status: game.status,
+                homeScore: game.home_points,
+                awayScore: game.away_points,
+                venue: game.venue?.name,
+              });
+            }
+          }
+          break;
+        }
       }
 
       return games.sort((a, b) =>
@@ -306,6 +384,38 @@ export class SportradarService {
             clock: summary.clock,
           };
         }
+        case 'NCAAFB': {
+          const summary = await this.ncaafb.getGameSummary(gameId);
+          return {
+            id: summary.id,
+            league: 'NCAAFB',
+            homeTeam: this.formatTeamName(summary.home),
+            awayTeam: this.formatTeamName(summary.away),
+            scheduled: summary.scheduled,
+            status: summary.status,
+            homeScore: summary.home.points,
+            awayScore: summary.away.points,
+            stats: { home: summary.home, away: summary.away },
+            period: summary.quarter,
+            clock: summary.clock,
+          };
+        }
+        case 'NCAAMB': {
+          const summary = await this.ncaamb.getGameSummary(gameId);
+          return {
+            id: summary.id,
+            league: 'NCAAMB',
+            homeTeam: this.formatTeamName(summary.home),
+            awayTeam: this.formatTeamName(summary.away),
+            scheduled: summary.scheduled,
+            status: summary.status,
+            homeScore: summary.home.points,
+            awayScore: summary.away.points,
+            stats: { home: summary.home, away: summary.away },
+            period: summary.half,
+            clock: summary.clock,
+          };
+        }
       }
     } catch (error) {
       console.error(`Error fetching game details for ${league} game ${gameId}:`, error);
@@ -320,10 +430,12 @@ export class SportradarService {
     const allGames: UnifiedGame[] = [];
 
     try {
-      const [nbaSchedule, mlbSchedule, nhlSchedule] = await Promise.allSettled([
+      const [nbaSchedule, mlbSchedule, nhlSchedule, ncaafbSchedule, ncaambSchedule] = await Promise.allSettled([
         this.nba.getTodaySchedule(),
         this.mlb.getTodaySchedule(),
         this.nhl.getTodaySchedule(),
+        this.ncaafb.getTodayGames(),
+        this.ncaamb.getTodaySchedule(),
       ]);
 
       // NBA games
@@ -390,6 +502,40 @@ export class SportradarService {
           allGames.push({
             id: game.id,
             league: 'NFL',
+            homeTeam: this.formatTeamName(game.home),
+            awayTeam: this.formatTeamName(game.away),
+            scheduled: game.scheduled,
+            status: game.status,
+            homeScore: game.home_points,
+            awayScore: game.away_points,
+            venue: game.venue?.name,
+          });
+        }
+      }
+
+      // NCAA Football games
+      if (ncaafbSchedule.status === 'fulfilled' && ncaafbSchedule.value.games) {
+        for (const game of ncaafbSchedule.value.games) {
+          allGames.push({
+            id: game.id,
+            league: 'NCAAFB',
+            homeTeam: this.formatTeamName(game.home),
+            awayTeam: this.formatTeamName(game.away),
+            scheduled: game.scheduled,
+            status: game.status,
+            homeScore: game.home_points,
+            awayScore: game.away_points,
+            venue: game.venue?.name,
+          });
+        }
+      }
+
+      // NCAA Men's Basketball games
+      if (ncaambSchedule.status === 'fulfilled' && ncaambSchedule.value.games) {
+        for (const game of ncaambSchedule.value.games) {
+          allGames.push({
+            id: game.id,
+            league: 'NCAAMB',
             homeTeam: this.formatTeamName(game.home),
             awayTeam: this.formatTeamName(game.away),
             scheduled: game.scheduled,

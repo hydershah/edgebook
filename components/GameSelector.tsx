@@ -74,12 +74,27 @@ export default function GameSelector({ sport, onGameSelect, selectedGameId }: Ga
     }
   }, [searchQuery, games]);
 
+  // Map frontend sport names to API league codes
+  function getSportLeagueCode(sport: string): string {
+    const sportMap: Record<string, string> = {
+      'NFL': 'nfl',
+      'NBA': 'nba',
+      'MLB': 'mlb',
+      'NHL': 'nhl',
+      'SOCCER': 'soccer',
+      'COLLEGE_FOOTBALL': 'ncaafb',
+      'COLLEGE_BASKETBALL': 'ncaamb',
+    };
+    return sportMap[sport.toUpperCase()] || sport.toLowerCase();
+  }
+
   async function fetchGames(selectedSport: string) {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/sportradar/schedule/${selectedSport.toLowerCase()}`);
+      const leagueCode = getSportLeagueCode(selectedSport);
+      const response = await fetch(`/api/sportradar/schedule/${leagueCode}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch games');

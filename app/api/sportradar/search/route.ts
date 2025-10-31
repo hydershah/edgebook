@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // If league is specified, search only that league
     if (league) {
-      const validLeagues: SportLeague[] = ['NBA', 'MLB', 'NHL', 'NFL'];
+      const validLeagues: SportLeague[] = ['NBA', 'MLB', 'NHL', 'NFL', 'NCAAFB', 'NCAAMB'];
       if (!validLeagues.includes(league as SportLeague)) {
         return NextResponse.json(
           {

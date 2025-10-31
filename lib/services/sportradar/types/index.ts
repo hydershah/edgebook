@@ -8,3 +8,5 @@ export * from './nba';
 export * from './mlb';
 export * from './nhl';
 export * from './nfl';
+export * from './ncaafb';
+export * from './ncaamb';
