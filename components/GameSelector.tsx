@@ -172,6 +172,7 @@ export default function GameSelector({ sport, onGameSelect, selectedGameId }: Ga
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
         <p className="text-sm text-red-600">{error}</p>
         <button
+          type="button"
           onClick={() => fetchGames(sport)}
           className="mt-2 text-sm text-red-700 underline hover:text-red-800"
         >
@@ -219,6 +220,7 @@ export default function GameSelector({ sport, onGameSelect, selectedGameId }: Ga
         {filteredGames.map((game) => (
           <button
             key={game.id}
+            type="button"
             onClick={() => onGameSelect(game)}
             className={`w-full text-left p-4 rounded-lg border-2 transition-all hover:shadow-md ${
               selectedGameId === game.id
@@ -277,6 +279,7 @@ export default function GameSelector({ sport, onGameSelect, selectedGameId }: Ga
             <>
               <p>No games found for &quot;{searchQuery}&quot;</p>
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
                 className="mt-2 text-sm text-green-600 underline hover:text-green-700"
               >
