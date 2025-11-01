@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { TrendingUp, ChevronDown } from 'lucide-react'
+import { TrendingUp, ChevronDown, Filter as FilterIcon, X } from 'lucide-react'
 import PickFeed from '@/components/PickFeed'
 import AccountStatusBanner from '@/components/AccountStatusBanner'
 import CreatePostBox from '@/components/CreatePostBox'
@@ -31,12 +31,15 @@ export default function FeedPage() {
     status: 'all',
     units: 'all',
     premiumOnly: false,
+    dateRange: 'all',
   })
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
   const [trendingSports, setTrendingSports] = useState<TrendingSport[]>([])
   const [topCreators, setTopCreators] = useState<TopCreator[]>([])
   const [loadingSports, setLoadingSports] = useState(true)
   const [loadingCreators, setLoadingCreators] = useState(true)
   const [sportDropdownOpen, setSportDropdownOpen] = useState(false)
+  const [dateDropdownOpen, setDateDropdownOpen] = useState(false)
 
   // Daily stats state
   const [dailyStats, setDailyStats] = useState({
@@ -174,7 +177,7 @@ export default function FeedPage() {
                 </button>
               </div>
 
-              {/* Filter Pills - Sports Dropdown + Horizontal Scroll for Others */}
+              {/* Filter Pills - Sports Dropdown + Date Filter + More Options */}
               <div className="px-4 py-3 flex items-center space-x-3">
                 {/* Sports Dropdown */}
                 <div className="relative">
@@ -232,6 +235,68 @@ export default function FeedPage() {
                     </>
                   )}
                 </div>
+
+                {/* Date Filter Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setDateDropdownOpen(!dateDropdownOpen)}
+                    className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all whitespace-nowrap flex items-center space-x-2"
+                  >
+                    <span>
+                      {filters.dateRange === 'all' && '📅 All Time'}
+                      {filters.dateRange === 'today' && '📅 Today'}
+                      {filters.dateRange === 'week' && '📅 This Week'}
+                      {filters.dateRange === 'month' && '📅 This Month'}
+                      {filters.dateRange === 'year' && '📅 This Year'}
+                    </span>
+                    <ChevronDown size={16} className={`transition-transform ${dateDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {dateDropdownOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-30"
+                        onClick={() => setDateDropdownOpen(false)}
+                      />
+                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-40">
+                        {[
+                          { label: '📅 All Time', value: 'all' },
+                          { label: '📅 Today', value: 'today' },
+                          { label: '📅 This Week', value: 'week' },
+                          { label: '📅 This Month', value: 'month' },
+                          { label: '📅 This Year', value: 'year' },
+                        ].map((range) => (
+                          <button
+                            key={range.value}
+                            onClick={() => {
+                              setFilters({ ...filters, dateRange: range.value })
+                              setDateDropdownOpen(false)
+                            }}
+                            className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                              filters.dateRange === range.value
+                                ? 'bg-primary/10 text-primary font-medium'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            {range.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Filter Panel Toggle Button (Reddit-style) */}
+                <button
+                  onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+                  className={`p-2 rounded-lg transition-all ${
+                    isFilterPanelOpen
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="Advanced Filters"
+                >
+                  <FilterIcon size={18} />
+                </button>
 
                 <div className="w-px h-6 bg-gray-300"></div>
 
@@ -310,6 +375,194 @@ export default function FeedPage() {
                 </div>
               </div>
             </div>
+
+            {/* Reddit-Style Filter Panel */}
+            {isFilterPanelOpen && (
+              <>
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                  onClick={() => setIsFilterPanelOpen(false)}
+                />
+
+                {/* Filter Panel Modal */}
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
+                      <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                        <FilterIcon size={24} className="text-primary" />
+                        <span>Filter Picks</span>
+                      </h2>
+                      <button
+                        onClick={() => setIsFilterPanelOpen(false)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <X size={20} className="text-gray-600" />
+                      </button>
+                    </div>
+
+                    {/* Filter Options */}
+                    <div className="p-6 space-y-6">
+                      {/* Sport Filter */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">Sport</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: '🏆 All Sports', value: 'all' },
+                            { label: '🏈 NFL', value: 'NFL' },
+                            { label: '🏀 NBA', value: 'NBA' },
+                            { label: '⚾ MLB', value: 'MLB' },
+                            { label: '🏒 NHL', value: 'NHL' },
+                            { label: '⚽ Soccer', value: 'SOCCER' },
+                            { label: '🏈 NCAAF', value: 'NCAAF' },
+                            { label: '🏀 NCAAB', value: 'NCAAB' },
+                          ].map((sport) => (
+                            <button
+                              key={sport.value}
+                              onClick={() => setFilters({ ...filters, sport: sport.value })}
+                              className={`px-4 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                                filters.sport === sport.value
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {sport.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Status Filter */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">Status</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: 'All Status', value: 'all' },
+                            { label: '⏳ Pending', value: 'PENDING' },
+                            { label: '✅ Won', value: 'WON' },
+                            { label: '❌ Lost', value: 'LOST' },
+                            { label: '🔄 Push', value: 'PUSH' },
+                          ].map((status) => (
+                            <button
+                              key={status.value}
+                              onClick={() => setFilters({ ...filters, status: status.value })}
+                              className={`px-4 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                                filters.status === status.value
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {status.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Confidence Filter */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">Confidence (Units)</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: 'All Units', value: 'all' },
+                            { label: '1 Unit', value: '1' },
+                            { label: '2 Units', value: '2' },
+                            { label: '3 Units', value: '3' },
+                            { label: '4 Units', value: '4' },
+                            { label: '5 Units', value: '5' },
+                          ].map((unit) => (
+                            <button
+                              key={unit.value}
+                              onClick={() => setFilters({ ...filters, units: unit.value })}
+                              className={`px-4 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                                filters.units === unit.value
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {unit.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Date Range Filter */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">Date Range</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: 'All Time', value: 'all' },
+                            { label: 'Today', value: 'today' },
+                            { label: 'This Week', value: 'week' },
+                            { label: 'This Month', value: 'month' },
+                            { label: 'This Year', value: 'year' },
+                          ].map((range) => (
+                            <button
+                              key={range.value}
+                              onClick={() => setFilters({ ...filters, dateRange: range.value })}
+                              className={`px-4 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                                filters.dateRange === range.value
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {range.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Content Type Filter */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">Content Type</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: 'All Content', value: false },
+                            { label: '💎 Premium Only', value: true },
+                          ].map((type) => (
+                            <button
+                              key={type.value.toString()}
+                              onClick={() => setFilters({ ...filters, premiumOnly: type.value })}
+                              className={`px-4 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                                filters.premiumOnly === type.value
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {type.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-gray-200 p-6 flex gap-3 bg-gray-50 rounded-b-2xl sticky bottom-0">
+                      <button
+                        onClick={() => {
+                          setFilters({
+                            sport: 'all',
+                            status: 'all',
+                            units: 'all',
+                            premiumOnly: false,
+                            dateRange: 'all',
+                          })
+                        }}
+                        className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        Reset Filters
+                      </button>
+                      <button
+                        onClick={() => setIsFilterPanelOpen(false)}
+                        className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Feed */}
             <PickFeed filters={filters} followingOnly={activeTab === 'following'} />

@@ -46,6 +46,7 @@ interface PickFeedProps {
     status: string
     units: string
     premiumOnly: boolean
+    dateRange?: string
   }
   followingOnly: boolean
 }
@@ -91,6 +92,7 @@ export default function PickFeed({ filters, followingOnly }: PickFeedProps) {
       if (filters.status !== 'all') params.append('status', filters.status)
       if (filters.units !== 'all') params.append('confidence', filters.units)
       if (filters.premiumOnly) params.append('premiumOnly', 'true')
+      if (filters.dateRange && filters.dateRange !== 'all') params.append('dateRange', filters.dateRange)
       if (followingOnly) params.append('followingOnly', 'true')
       params.append('page', pageNum.toString())
       params.append('limit', '10')

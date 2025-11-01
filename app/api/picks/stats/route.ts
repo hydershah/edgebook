@@ -7,7 +7,17 @@ import { cache, CacheKeys } from '@/lib/cache'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    const { pickIds } = await request.json()
+
+    // Parse request body with error handling
+    let body
+    try {
+      body = await request.json()
+    } catch (error) {
+      console.error('Error parsing request body:', error)
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+    }
+
+    const { pickIds } = body
 
     if (!Array.isArray(pickIds) || pickIds.length === 0) {
       return NextResponse.json({ error: 'Invalid pickIds' }, { status: 400 })
