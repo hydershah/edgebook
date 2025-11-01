@@ -520,7 +520,9 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
         </h3>
 
         {/* Compact Prediction & Game Info Grid */}
-        <div className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200">
+        <div className={`bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200 ${
+          (pick.isPremium && !isUnlocked && !isOwnPick) || pick.isPremiumLocked ? 'blur-sm' : ''
+        }`}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
             {/* Prediction Info */}
             {pick.predictionType && (

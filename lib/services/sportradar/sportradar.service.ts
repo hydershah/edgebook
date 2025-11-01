@@ -7,8 +7,11 @@ import { nbaService } from './nba.service';
 import { mlbService } from './mlb.service';
 import { nhlService } from './nhl.service';
 import { nflService } from './nfl.service';
+import { soccerService } from './soccer.service';
+import { cfbService } from './cfb.service';
+import { cbbService } from './cbb.service';
 
-export type SportLeague = 'NBA' | 'MLB' | 'NHL' | 'NFL';
+export type SportLeague = 'NBA' | 'MLB' | 'NHL' | 'NFL' | 'SOCCER' | 'CFB' | 'CBB';
 
 export interface UnifiedGame {
   id: string;
@@ -33,6 +36,9 @@ export class SportradarService {
   private mlb = mlbService;
   private nhl = nhlService;
   private nfl = nflService;
+  private soccer = soccerService;
+  private cfb = cfbService;
+  private cbb = cbbService;
 
   /**
    * Helper to format team name (handles both market+name and name-only formats)
@@ -52,11 +58,14 @@ export class SportradarService {
 
     try {
       // Fetch from all leagues in parallel
-      const [nbaGames, mlbGames, nhlGames, nflGames] = await Promise.allSettled([
+      const [nbaGames, mlbGames, nhlGames, nflGames, soccerGames, cfbGames, cbbGames] = await Promise.allSettled([
         this.nba.getUpcomingGames(),
         this.mlb.getUpcomingGames(),
         this.nhl.getUpcomingGames(),
         this.nfl.getUpcomingGames(),
+        this.soccer.getUpcomingGames(),
+        this.cfb.getUpcomingGames(),
+        this.cbb.getUpcomingGames(),
       ]);
 
       // NBA games
@@ -130,6 +139,63 @@ export class SportradarService {
             awayScore: game.away_points,
             venue: game.venue?.name,
           });
+        }
+      }
+
+      // Soccer games
+      if (soccerGames.status === 'fulfilled') {
+        for (const schedule of soccerGames.value) {
+          for (const game of schedule.games) {
+            allGames.push({
+              id: game.id,
+              league: 'SOCCER',
+              homeTeam: this.formatTeamName(game.home),
+              awayTeam: this.formatTeamName(game.away),
+              scheduled: game.scheduled,
+              status: game.status,
+              homeScore: game.home_points,
+              awayScore: game.away_points,
+              venue: game.venue?.name,
+            });
+          }
+        }
+      }
+
+      // CFB games
+      if (cfbGames.status === 'fulfilled') {
+        for (const schedule of cfbGames.value) {
+          for (const game of schedule.games) {
+            allGames.push({
+              id: game.id,
+              league: 'CFB',
+              homeTeam: this.formatTeamName(game.home),
+              awayTeam: this.formatTeamName(game.away),
+              scheduled: game.scheduled,
+              status: game.status,
+              homeScore: game.home_points,
+              awayScore: game.away_points,
+              venue: game.venue?.name,
+            });
+          }
+        }
+      }
+
+      // CBB games
+      if (cbbGames.status === 'fulfilled') {
+        for (const schedule of cbbGames.value) {
+          for (const game of schedule.games) {
+            allGames.push({
+              id: game.id,
+              league: 'CBB',
+              homeTeam: this.formatTeamName(game.home),
+              awayTeam: this.formatTeamName(game.away),
+              scheduled: game.scheduled,
+              status: game.status,
+              homeScore: game.home_points,
+              awayScore: game.away_points,
+              venue: game.venue?.name,
+            });
+          }
         }
       }
 
@@ -225,6 +291,63 @@ export class SportradarService {
           }
           break;
         }
+        case 'SOCCER': {
+          const schedules = await this.soccer.getUpcomingGames();
+          for (const schedule of schedules) {
+            for (const game of schedule.games) {
+              games.push({
+                id: game.id,
+                league: 'SOCCER',
+                homeTeam: this.formatTeamName(game.home),
+                awayTeam: this.formatTeamName(game.away),
+                scheduled: game.scheduled,
+                status: game.status,
+                homeScore: game.home_points,
+                awayScore: game.away_points,
+                venue: game.venue?.name,
+              });
+            }
+          }
+          break;
+        }
+        case 'CFB': {
+          const schedules = await this.cfb.getUpcomingGames();
+          for (const schedule of schedules) {
+            for (const game of schedule.games) {
+              games.push({
+                id: game.id,
+                league: 'CFB',
+                homeTeam: this.formatTeamName(game.home),
+                awayTeam: this.formatTeamName(game.away),
+                scheduled: game.scheduled,
+                status: game.status,
+                homeScore: game.home_points,
+                awayScore: game.away_points,
+                venue: game.venue?.name,
+              });
+            }
+          }
+          break;
+        }
+        case 'CBB': {
+          const schedules = await this.cbb.getUpcomingGames();
+          for (const schedule of schedules) {
+            for (const game of schedule.games) {
+              games.push({
+                id: game.id,
+                league: 'CBB',
+                homeTeam: this.formatTeamName(game.home),
+                awayTeam: this.formatTeamName(game.away),
+                scheduled: game.scheduled,
+                status: game.status,
+                homeScore: game.home_points,
+                awayScore: game.away_points,
+                venue: game.venue?.name,
+              });
+            }
+          }
+          break;
+        }
       }
 
       return games.sort((a, b) =>
@@ -306,6 +429,41 @@ export class SportradarService {
             clock: summary.clock,
           };
         }
+        case 'CFB': {
+          const summary = await this.cfb.getGameSummary(gameId);
+          return {
+            id: summary.id,
+            league: 'CFB',
+            homeTeam: `${summary.home.market} ${summary.home.name}`,
+            awayTeam: `${summary.away.market} ${summary.away.name}`,
+            scheduled: summary.scheduled,
+            status: summary.status,
+            homeScore: summary.home.points,
+            awayScore: summary.away.points,
+            stats: { home: summary.home, away: summary.away },
+            period: summary.quarter,
+            clock: summary.clock,
+          };
+        }
+        case 'CBB': {
+          const summary = await this.cbb.getGameSummary(gameId);
+          return {
+            id: summary.id,
+            league: 'CBB',
+            homeTeam: `${summary.home.market} ${summary.home.name}`,
+            awayTeam: `${summary.away.market} ${summary.away.name}`,
+            scheduled: summary.scheduled,
+            status: summary.status,
+            homeScore: summary.home.points,
+            awayScore: summary.away.points,
+            stats: { home: summary.home, away: summary.away },
+            period: summary.half,
+            clock: summary.clock,
+          };
+        }
+        case 'SOCCER':
+          // Soccer requires tournament-specific implementation
+          return null;
       }
     } catch (error) {
       console.error(`Error fetching game details for ${league} game ${gameId}:`, error);

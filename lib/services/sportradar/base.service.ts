@@ -10,6 +10,9 @@ export interface SportradarConfig {
     mlb: string;
     nhl: string;
     nfl: string;
+    soccer: string;
+    ncaafb: string;
+    ncaamb: string;
   };
 }
 
@@ -28,6 +31,9 @@ export class SportradarBaseService {
       mlb: 'https://api.sportradar.com/mlb/trial/v8/en',
       nhl: 'https://api.sportradar.com/nhl/trial/v7/en',
       nfl: 'https://api.sportradar.com/nfl/official/trial/v7/en',
+      soccer: 'https://api.sportradar.com/soccer-t3/global/trial/v4/en',
+      ncaafb: 'https://api.sportradar.com/ncaafb/trial/v7/en',
+      ncaamb: 'https://api.sportradar.com/ncaamb/trial/v8/en',
     };
   }
 
