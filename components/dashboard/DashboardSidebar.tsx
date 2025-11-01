@@ -19,7 +19,6 @@ const navigation = [
   { name: "Saved", href: "/dashboard/saved", icon: Bookmark },
   { name: "Stats", href: "/dashboard/stats", icon: BarChart3 },
   { name: "Earnings", href: "/dashboard/earnings", icon: DollarSign },
-  { name: "Profile", href: "/profile", icon: User },
   { name: "Settings", href: "/profile/settings", icon: Settings },
 ];
 
@@ -61,10 +60,21 @@ export default function DashboardSidebar({ user }: { user: any }) {
           <div className="mt-6">
             <Link
               href="/createpick"
-              className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-primary to-primary-dark hover:shadow-2xl hover:shadow-primary/30 text-white font-bold px-6 py-4 rounded-2xl transition-all duration-300 shadow-lg shadow-primary/20"
+              className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-primary to-primary-dark hover:shadow-2xl hover:shadow-primary/30 text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-primary/20 hover:-translate-y-0.5"
             >
-              <Plus size={20} />
-              Create Pick
+              <Plus size={20} strokeWidth={2.5} />
+              <span className="text-base">Create Pick</span>
+            </Link>
+          </div>
+
+          {/* View Public Profile Button */}
+          <div className="mt-3">
+            <Link
+              href={`/profile/${user?.id}`}
+              className="flex items-center justify-center gap-2 w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-3.5 rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+            >
+              <User size={20} strokeWidth={2.5} />
+              <span className="text-base">Public Profile</span>
             </Link>
           </div>
         </nav>

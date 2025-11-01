@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import {
   Users,
   LineChart,
@@ -41,7 +43,7 @@ function AnimatedNumber({
   formatter,
   isActive = true,
 }: AnimatedNumberProps) {
-  const [displayValue, setDisplayValue] = useState(value)
+  const [displayValue, setDisplayValue] = useState(0)
 
   useEffect(() => {
     if (!isActive) {
@@ -76,7 +78,7 @@ function AnimatedNumber({
       }
     }
 
-    setDisplayValue(startValue)
+    setDisplayValue(0)
     frameId = requestAnimationFrame(step)
 
     return () => {
@@ -93,6 +95,38 @@ function AnimatedNumber({
       {prefix}
       {resolvedValue}
       {suffix}
+    </span>
+  )
+}
+
+type AnimatedTextProps = {
+  text: string
+  className?: string
+  isActive?: boolean
+}
+
+function AnimatedText({ text, className, isActive = true }: AnimatedTextProps) {
+  return (
+    <span className={className}>
+      {text.split('').map((char, index) => (
+        <span
+          key={`${char}-${index}`}
+          className="inline-block overflow-hidden"
+          style={{
+            height: '1.2em',
+            lineHeight: '1.2em'
+          }}
+        >
+          <span
+            className="inline-block"
+            style={{
+              animation: isActive ? `rollUp 0.5s ease-out ${index * 0.04}s both` : 'none',
+            }}
+          >
+            {char === ' ' ? '\u00A0' : char}
+          </span>
+        </span>
+      ))}
     </span>
   )
 }
@@ -152,9 +186,148 @@ function ProfileCardGlow() {
   )
 }
 
+type ExpertProfile = {
+  name: string
+  sports: string
+  hitRate: number
+  earnings: number
+  winRate: number
+  settledPicks: number
+  correctPicks: number
+  totalPicks: number
+  record: string
+  sportStats: Array<{
+    name: string
+    percentage: number
+    record: string
+  }>
+  isPremium: boolean
+  picks?: string[]
+}
+
+const EXPERT_PROFILES: ExpertProfile[] = [
+  {
+    name: 'Taylor Morgan',
+    sports: 'NBA & MLB specialist',
+    hitRate: 62,
+    earnings: 3450,
+    winRate: 62,
+    settledPicks: 154,
+    correctPicks: 154,
+    totalPicks: 248,
+    record: '154-94',
+    sportStats: [
+      { name: 'NBA', percentage: 58, record: '42-30' },
+      { name: 'MLB', percentage: 65, record: '78-42' },
+      { name: 'UFC', percentage: 54, record: '34-22' },
+    ],
+    isPremium: true,
+  },
+  {
+    name: 'Marcus Rodriguez',
+    sports: 'NFL & NBA expert',
+    hitRate: 67,
+    earnings: 8920,
+    winRate: 67,
+    settledPicks: 210,
+    correctPicks: 210,
+    totalPicks: 315,
+    record: '210-105',
+    sportStats: [
+      { name: 'NFL', percentage: 71, record: '89-36' },
+      { name: 'NBA', percentage: 64, record: '96-54' },
+      { name: 'MLB', percentage: 62, record: '25-15' },
+    ],
+    isPremium: false,
+    picks: ['Chiefs -3.5 vs Bills — Spread', 'Lakers ML @ Warriors — Moneyline', '49ers @ Cowboys — Under 47.5'],
+  },
+  {
+    name: 'Sarah Chen',
+    sports: 'MLB & UFC specialist',
+    hitRate: 59,
+    earnings: 5680,
+    winRate: 59,
+    settledPicks: 182,
+    correctPicks: 182,
+    totalPicks: 308,
+    record: '182-126',
+    sportStats: [
+      { name: 'MLB', percentage: 63, record: '118-69' },
+      { name: 'UFC', percentage: 57, record: '48-36' },
+      { name: 'NBA', percentage: 52, record: '16-21' },
+    ],
+    isPremium: true,
+  },
+  {
+    name: 'James Thompson',
+    sports: 'NHL & NBA analyst',
+    hitRate: 64,
+    earnings: 6240,
+    winRate: 64,
+    settledPicks: 145,
+    correctPicks: 145,
+    totalPicks: 227,
+    record: '145-82',
+    sportStats: [
+      { name: 'NHL', percentage: 68, record: '75-35' },
+      { name: 'NBA', percentage: 60, record: '58-39' },
+      { name: 'NFL', percentage: 60, record: '12-8' },
+    ],
+    isPremium: false,
+    picks: ['Avalanche ML vs Maple Leafs — Moneyline', 'Celtics -5.5 @ Heat — Spread', 'Oilers @ Bruins — Over 6.5'],
+  },
+  {
+    name: 'Alex Rivera',
+    sports: 'NFL & MLB pro',
+    hitRate: 70,
+    earnings: 12450,
+    winRate: 70,
+    settledPicks: 268,
+    correctPicks: 268,
+    totalPicks: 383,
+    record: '268-115',
+    sportStats: [
+      { name: 'NFL', percentage: 73, record: '142-52' },
+      { name: 'MLB', percentage: 68, record: '108-51' },
+      { name: 'UFC', percentage: 64, record: '18-12' },
+    ],
+    isPremium: true,
+  },
+  {
+    name: 'Jordan Lee',
+    sports: 'UFC & Boxing expert',
+    hitRate: 61,
+    earnings: 4890,
+    winRate: 61,
+    settledPicks: 127,
+    correctPicks: 127,
+    totalPicks: 208,
+    record: '127-81',
+    sportStats: [
+      { name: 'UFC', percentage: 65, record: '78-42' },
+      { name: 'Boxing', percentage: 59, record: '39-27' },
+      { name: 'NBA', percentage: 55, record: '10-12' },
+    ],
+    isPremium: false,
+    picks: ['Jones by KO/TKO — Method', 'Canelo ML vs Charlo — Moneyline', 'Adesanya ITD @ -110 — Prop'],
+  },
+]
+
 export default function Home() {
   const [isCardActive, setIsCardActive] = useState(false)
+  const [currentProfileIndex, setCurrentProfileIndex] = useState(0)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const cardRef = useRef<HTMLDivElement | null>(null)
+  const { data: session } = useSession()
+  const router = useRouter()
+
+  const handlePickClick = () => {
+    if (session) {
+      router.push('/feed')
+    } else {
+      router.push('/auth/signin')
+    }
+  }
 
   useEffect(() => {
     const node = cardRef.current
@@ -188,8 +361,41 @@ export default function Home() {
     return () => observer.disconnect()
   }, [])
 
+  // Auto-rotation effect
+  useEffect(() => {
+    if (!isCardActive) return
+
+    const rotationInterval = setInterval(() => {
+      setIsTransitioning(true)
+
+      setTimeout(() => {
+        setCurrentProfileIndex((prev) => (prev + 1) % EXPERT_PROFILES.length)
+        setIsTransitioning(false)
+      }, 300)
+    }, 5000) // Rotate every 5 seconds
+
+    return () => clearInterval(rotationInterval)
+  }, [isCardActive])
+
+  const currentProfile = EXPERT_PROFILES[currentProfileIndex]
+
   return (
     <main className="bg-white text-gray-900">
+      <style jsx global>{`
+        @keyframes rollUp {
+          0% {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
       <ComplianceConsent />
       <section className="relative border-b border-gray-800 bg-gradient-to-br from-[#092045] via-[#0b274d] to-[#092045] overflow-hidden" aria-label="Hero section">
         {/* White accent spread from top */}
@@ -242,123 +448,120 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-3 sm:gap-0">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Public profile snapshot</p>
-                    <h3 className="mt-1 text-base font-semibold text-gray-900">Taylor Morgan</h3>
-                    <p className="text-xs text-gray-500">NBA &amp; MLB specialist</p>
+                    <h3 className="mt-1 text-base font-semibold text-gray-900">
+                      <AnimatedText
+                        key={`name-${currentProfileIndex}`}
+                        text={currentProfile.name}
+                        isActive={!isTransitioning}
+                      />
+                    </h3>
+                    <p className={`text-xs text-gray-500 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                      {currentProfile.sports}
+                    </p>
                   </div>
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary whitespace-nowrap">
                     <AnimatedNumber
-                      value={62}
+                      value={currentProfile.hitRate}
                       suffix="% hit rate"
                       isActive={isCardActive}
                       delay={80}
+                      duration={800}
                       formatter={(val) => Math.round(val).toString()}
                     />
                   </span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:grid-cols-4">
-                  <div className="rounded-lg bg-background p-2.5">
-                    <p className="text-xs font-medium uppercase text-gray-500">Total picks</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
-                      <AnimatedNumber value={248} isActive={isCardActive} delay={120} />
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-2.5 border border-emerald-200/50">
+                    <p className="text-xs font-semibold uppercase text-emerald-700">Total Earnings</p>
+                    <p className="mt-0.5 text-xl font-bold text-emerald-600">
+                      <AnimatedNumber value={currentProfile.earnings} prefix="$" isActive={isCardActive} delay={120} duration={800} formatter={(val) => Math.round(val).toLocaleString()} />
                     </p>
-                    <p className="text-xs text-gray-500">82 premium • 166 free</p>
+                    <p className="text-xs text-emerald-600/80">Net profit</p>
                   </div>
-                  <div className="rounded-lg bg-background p-2.5">
-                    <p className="text-xs font-medium uppercase text-gray-500">Return on units</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
-                      <AnimatedNumber value={38.6} decimals={1} prefix="+" isActive={isCardActive} delay={220} />
+                  <div className="rounded-lg bg-background p-2.5 border border-gray-200">
+                    <p className="text-xs font-semibold uppercase text-gray-600">Win Rate</p>
+                    <p className="mt-0.5 text-xl font-bold text-gray-900">
+                      <AnimatedNumber value={currentProfile.winRate} suffix="%" isActive={isCardActive} delay={220} duration={800} />
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Best run: +
-                      <AnimatedNumber
-                        value={12}
-                        suffix="u"
-                        isActive={isCardActive}
-                        delay={320}
-                        formatter={(val) => Math.round(val).toString()}
-                      />
+                    <p className={`text-xs text-gray-500 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                      {currentProfile.settledPicks} settled picks
                     </p>
                   </div>
-                  <div className="rounded-lg bg-background p-2.5">
-                    <p className="text-xs font-medium uppercase text-gray-500">Followers</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
-                      <AnimatedNumber
-                        value={4832}
-                        isActive={isCardActive}
-                        delay={260}
-                        formatter={(val) => Math.round(val).toLocaleString()}
-                      />
+                  <div className="rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 p-2.5 border border-blue-200/50">
+                    <p className="text-xs font-semibold uppercase text-blue-700">Correct Picks</p>
+                    <p className="mt-0.5 text-xl font-bold text-blue-600">
+                      <AnimatedNumber value={currentProfile.correctPicks} isActive={isCardActive} delay={260} duration={800} />
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Avg unlock{' '}
-                      <AnimatedNumber
-                        value={41}
-                        suffix="%"
-                        isActive={isCardActive}
-                        delay={360}
-                        formatter={(val) => Math.round(val).toString()}
-                      />
-                    </p>
+                    <p className="text-xs text-blue-600/80">Winning predictions</p>
                   </div>
-                  <div className="rounded-lg bg-background p-2.5">
-                    <p className="text-xs font-medium uppercase text-gray-500">Sport breakdown</p>
-                    <p className="mt-0.5 text-sm font-semibold text-gray-900">
-                      NBA{' '}
-                      <AnimatedNumber
-                        value={58}
-                        suffix="%"
-                        isActive={isCardActive}
-                        delay={300}
-                        formatter={(val) => Math.round(val).toString()}
-                      />
+                  <div className="rounded-lg bg-background p-2.5 border border-gray-200">
+                    <p className="text-xs font-semibold uppercase text-gray-600">Total Picks</p>
+                    <p className="mt-0.5 text-xl font-bold text-gray-900">
+                      <AnimatedNumber value={currentProfile.totalPicks} isActive={isCardActive} delay={300} duration={800} />
                     </p>
-                    <p className="text-xs text-gray-500">
-                      MLB{' '}
-                      <AnimatedNumber
-                        value={65}
-                        suffix="%"
-                        isActive={isCardActive}
-                        delay={360}
-                        formatter={(val) => Math.round(val).toString()}
-                      />{' '}
-                      • UFC{' '}
-                      <AnimatedNumber
-                        value={54}
-                        suffix="%"
-                        isActive={isCardActive}
-                        delay={420}
-                        formatter={(val) => Math.round(val).toString()}
-                      />
+                    <p className={`text-xs text-gray-500 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                      {currentProfile.record} record
                     </p>
                   </div>
                 </div>
 
+                <div className="mt-3 rounded-lg bg-white/50 px-2 py-1.5 border border-gray-200">
+                  <p className="text-xs font-semibold uppercase text-gray-600 mb-1">Performance by Sport</p>
+                  <div className="grid grid-cols-3 gap-1 text-center">
+                    {currentProfile.sportStats.map((sport, index) => (
+                      <div key={`${currentProfileIndex}-${index}`} className="rounded-md bg-background px-1.5 py-1">
+                        <p className={`text-xs font-semibold text-gray-500 uppercase leading-tight transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                          {sport.name}
+                        </p>
+                        <p className={`text-sm font-bold leading-tight my-0.5 ${sport.percentage >= 60 ? 'text-emerald-600' : 'text-blue-600'}`}>
+                          <AnimatedNumber value={sport.percentage} suffix="%" isActive={isCardActive} delay={340 + index * 40} duration={800} />
+                        </p>
+                        <p className={`text-xs text-gray-500 leading-tight transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                          {sport.record}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="mt-4 rounded-lg border border-gray-200 bg-white p-2.5">
-                  <p className="text-xs font-semibold uppercase text-gray-500">Latest premium picks</p>
-                  <div className="mt-2 space-y-1.5 text-sm text-gray-600">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">Dodgers @ Braves — Moneyline</span>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">$11 unlock</span>
+                  <p className="text-xs font-semibold uppercase text-gray-500 mb-2">
+                    {currentProfile.isPremium ? 'Latest premium picks' : 'Latest free picks'}
+                  </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className={`flex-1 space-y-1 text-sm transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                      {currentProfile.isPremium ? (
+                        <>
+                          <div className="font-medium text-gray-900 blur-sm select-none">Dodgers @ Braves — Moneyline</div>
+                          <div className="font-medium text-gray-900 blur-sm select-none">Timberwolves +3.5 — Spread</div>
+                          <div className="font-medium text-gray-900 blur-sm select-none">Red Sox @ Yankees — Over 8.5</div>
+                        </>
+                      ) : (
+                        currentProfile.picks?.map((pick, index) => (
+                          <div key={`${currentProfileIndex}-pick-${index}`} className="font-medium text-gray-900">
+                            {pick}
+                          </div>
+                        ))
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">Timberwolves +3.5 — Spread</span>
-                      <span className="text-xs font-semibold text-gray-500">Unlocked by you</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">Red Sox @ Yankees — Over 8.5</span>
-                      <span className="text-xs font-semibold text-gray-500">Pending • 2u</span>
-                    </div>
+                    <button
+                      onClick={handlePickClick}
+                      className="flex-shrink-0 flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary px-4 py-2.5 text-xs font-semibold text-white shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                    >
+                      <span>{currentProfile.isPremium ? 'Unlock pick' : 'View pick'}</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
 
                 <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
                   <span>Transaction history &amp; wallet balance synced in real time</span>
                   <Link
-                    href="/profile"
+                    href="/dashboard"
                     className="group inline-flex items-center gap-1 text-primary transition hover:text-primary-dark"
                   >
-                    View profile
+                    View dashboard
                     <ArrowRight className="h-3 w-3 transition-transform duration-500 group-hover:translate-x-1" />
                   </Link>
                 </div>

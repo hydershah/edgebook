@@ -2,15 +2,20 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { ImageIcon, TrendingUp } from 'lucide-react'
+import Image from 'next/image'
+import { TrendingUp } from 'lucide-react'
 
 export default function CreatePostBox() {
   const { data: session } = useSession()
   const router = useRouter()
   const avatarInitial = session?.user?.name?.[0]?.toUpperCase() || 'U'
 
-  const handleClick = () => {
+  const handlePickClick = () => {
     router.push('/createpick')
+  }
+
+  const handleAnalystClick = () => {
+    router.push('/aianalyst')
   }
 
   if (!session?.user) return null
@@ -25,7 +30,7 @@ export default function CreatePostBox() {
 
         {/* Input Area */}
         <button
-          onClick={handleClick}
+          onClick={handlePickClick}
           className="flex-1 text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 text-sm transition-colors cursor-pointer"
         >
           What&apos;s your pick, {session.user.name?.split(' ')[0]}?
@@ -35,18 +40,18 @@ export default function CreatePostBox() {
       {/* Action Buttons */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
         <button
-          onClick={handleClick}
+          onClick={handlePickClick}
           className="flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 text-sm font-medium"
         >
           <TrendingUp size={20} className="text-primary" />
           <span>Sports Pick</span>
         </button>
         <button
-          onClick={handleClick}
+          onClick={handleAnalystClick}
           className="flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 text-sm font-medium"
         >
-          <ImageIcon size={20} className="text-green-600" />
-          <span>Analysis</span>
+          <Image src="/gamelens.svg" alt="GameLens AI" width={20} height={20} className="flex-shrink-0" />
+          <span>GameLens AI Analyst</span>
         </button>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Apple, LineChart, ShieldCheck, Users } from 'lucide-react'
+import { Apple } from 'lucide-react'
 
 function SignInContent() {
   const router = useRouter()
@@ -112,44 +112,8 @@ function SignInContent() {
       <div className="pointer-events-none absolute bottom-[-12rem] right-[-8rem] -z-10 h-[26rem] w-[26rem] rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute bottom-[-8rem] left-[-8rem] -z-10 hidden h-[22rem] w-[22rem] rounded-full bg-primary/5 blur-3xl md:block" />
 
-      <div className="mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:gap-16 lg:py-20">
-        <div className="w-full max-w-xl rounded-3xl border border-gray-200/60 bg-white/70 p-8 shadow-xl shadow-primary/10 backdrop-blur-sm sm:p-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary-dark">
-            EdgeBook
-          </div>
-          <h1 className="mt-6 text-3xl font-semibold text-gray-900 sm:text-4xl">
-            Sign in and pick up where you left off
-          </h1>
-          <p className="mt-4 text-base text-gray-600 sm:text-lg">
-            Access your performance dashboard, manage premium picks, and stay connected with the community who follows your edge.
-          </p>
-
-          <div className="mt-8 space-y-4">
-            <div className="flex items-start gap-3 rounded-2xl border border-gray-200/60 bg-white/80 p-4 shadow-sm shadow-primary/5">
-              <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Verified records</p>
-                <p className="text-sm text-gray-600">Keep every pick accountable with transparent stats and disclosures.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-2xl border border-gray-200/60 bg-white/80 p-4 shadow-sm shadow-primary/5">
-              <LineChart className="mt-0.5 h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Actionable analytics</p>
-                <p className="text-sm text-gray-600">Track win rate, unit ROI, and sport splits in one glance.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-2xl border border-gray-200/60 bg-white/80 p-4 shadow-sm shadow-primary/5">
-              <Users className="mt-0.5 h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Engaged community</p>
-                <p className="text-sm text-gray-600">Grow your followers and share insights with serious analysts.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full max-w-md rounded-3xl border border-gray-200/70 bg-white/95 p-8 shadow-xl shadow-gray-200/60 sm:p-10">
+      <div className="mx-auto flex min-h-[70vh] w-full max-w-md justify-center px-4 py-12 sm:px-6 lg:py-20">
+        <div className="w-full rounded-3xl border border-gray-200/70 bg-white/95 p-8 shadow-xl shadow-gray-200/60 sm:p-10">
           <div className="mb-8">
             <h2 className="text-3xl font-semibold text-gray-900">Welcome back</h2>
             <p className="mt-2 text-sm text-gray-600">Sign in to continue to your EdgeBook account.</p>

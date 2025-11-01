@@ -28,7 +28,7 @@ export default function Navbar() {
     () => [
       { href: '/feed', label: 'Feed', icon: Home },
       { href: '/trending', label: 'Trending', icon: TrendingUp },
-      { href: '/aianalyst', label: 'GameEdge AI', imageSrc: '/gameedge.svg' },
+      { href: '/aianalyst', label: 'GameLens AI', imageSrc: '/gamelens.svg' },
     ],
     [],
   )
@@ -190,6 +190,13 @@ export default function Navbar() {
                         </div>
                       </div>
                       <div className="py-1">
+                        <Link
+                          href={`/profile/${session.user.id}`}
+                          className="block px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                        >
+                          View Public Profile
+                        </Link>
                         <Link
                           href="/dashboard"
                           className="block px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
