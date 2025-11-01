@@ -105,14 +105,14 @@ function SignInContent() {
   }
 
   return (
-    <div className="relative isolate overflow-hidden bg-gradient-to-br from-white via-background to-white/95">
+    <div className="relative isolate min-h-fit bg-gradient-to-br from-white via-background to-white/95">
       <div className="pointer-events-none absolute inset-x-0 top-[-12rem] -z-10 flex justify-center">
         <div className="h-[22rem] w-[22rem] rounded-full bg-primary/25 blur-3xl sm:h-[28rem] sm:w-[28rem]" />
       </div>
       <div className="pointer-events-none absolute bottom-[-12rem] right-[-8rem] -z-10 h-[26rem] w-[26rem] rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute bottom-[-8rem] left-[-8rem] -z-10 hidden h-[22rem] w-[22rem] rounded-full bg-primary/5 blur-3xl md:block" />
 
-      <div className="mx-auto flex min-h-[70vh] w-full max-w-md justify-center px-4 py-12 sm:px-6 lg:py-20">
+      <div className="mx-auto flex w-full max-w-md justify-center px-4 py-16 sm:px-6">
         <div className="w-full rounded-3xl border border-gray-200/70 bg-white/95 p-8 shadow-xl shadow-gray-200/60 sm:p-10">
           <div className="mb-8">
             <h2 className="text-3xl font-semibold text-gray-900">Welcome back</h2>

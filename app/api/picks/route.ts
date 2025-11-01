@@ -157,6 +157,10 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             avatar: true,
+            isVerified: true,
+            winRate: true,
+            totalPicks: true,
+            streak: true,
           },
         },
       },
@@ -189,12 +193,20 @@ export async function GET(request: NextRequest) {
       const isLocked = pick.lockedAt ? now >= pick.lockedAt : false
       const hasPurchased = purchasedPickIds.has(pick.id)
 
-      // SECURITY: Completely hide content for premium picks that haven't been purchased
+      // SECURITY: Hide sensitive content for premium picks that haven't been purchased
+      // But keep prediction type info visible as a teaser
       if (pick.isPremium && !isOwner && !hasPurchased) {
         return {
           ...pick,
           details: '', // Completely hide details - no truncation/preview
-          odds: null,
+          // Keep prediction fields visible as a teaser
+          predictionType: pick.predictionType,
+          predictedWinner: pick.predictedWinner,
+          spreadValue: pick.spreadValue,
+          spreadTeam: pick.spreadTeam,
+          totalValue: pick.totalValue,
+          totalPrediction: pick.totalPrediction,
+          odds: pick.odds, // Show odds as part of the preview
           isLocked,
           isPremiumLocked: true,
         }
@@ -306,6 +318,10 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             avatar: true,
+            isVerified: true,
+            winRate: true,
+            totalPicks: true,
+            streak: true,
           },
         },
       },

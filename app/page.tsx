@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
@@ -10,11 +11,10 @@ import {
   CreditCard,
   ShieldCheck,
   Target,
-  Trophy,
-  BarChart3,
   ArrowRight,
   Wallet,
   Globe,
+  QrCode,
 } from 'lucide-react'
 import ComplianceConsent from '@/components/ComplianceConsent'
 
@@ -317,6 +317,7 @@ export default function Home() {
   const [isCardActive, setIsCardActive] = useState(false)
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [deviceView, setDeviceView] = useState<'desktop' | 'mobile'>('desktop')
   const cardRef = useRef<HTMLDivElement | null>(null)
   const { data: session } = useSession()
   const router = useRouter()
@@ -626,6 +627,7 @@ export default function Home() {
         </div>
       </section>
 
+
       <section className="border-t border-b border-gray-200 bg-background py-12 sm:py-16 lg:py-20" aria-labelledby="how-it-works-heading">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -739,6 +741,428 @@ export default function Home() {
                 <p className="mt-2 text-sm sm:text-base text-gray-600">
                   EdgeBook is built to help you make smart decisions by giving you transparency in all public opinion.
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Device Showcase Section - Binance Style */}
+      <section className="py-16 sm:py-20 bg-white overflow-hidden" aria-labelledby="device-showcase-heading">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 id="device-showcase-heading" className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
+              Your edge. Any device.
+            </h2>
+          </div>
+
+          <div className="relative">
+            <div className="flex flex-col lg:flex-row items-start justify-center gap-16 lg:gap-20">
+              {/* Left Side - Device Mockup (50%) */}
+              <div className="w-full lg:w-1/2 flex flex-col items-center">
+                <div className="flex justify-center items-center min-h-[570px]">
+
+                {/* Desktop View */}
+                {deviceView === 'desktop' && (
+                  <div className="relative w-full max-w-6xl transform scale-150">
+                    {/* Laptop Container */}
+                    <div className="relative mx-auto">
+                      {/* Screen with aspect ratio */}
+                      <div className="relative" style={{ aspectRatio: '16/10' }}>
+                        {/* Screen Bezel */}
+                        <div className="relative bg-gray-900 rounded-t-2xl p-0.5 shadow-2xl h-full flex flex-col">
+                    {/* Top Bar with Traffic Lights */}
+                    <div className="bg-gray-800 rounded-t-xl px-2 py-1 flex items-center flex-shrink-0">
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#FF5F56]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#FFBD2E]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#27C93F]"></div>
+                      </div>
+                      <div className="flex-1 flex justify-center">
+                        <div className="bg-gray-700 rounded-md px-2 py-0.5 max-w-xs w-full">
+                          <span className="text-[5px] text-gray-400 font-mono">edgebook.ai/dashboard</span>
+                        </div>
+                      </div>
+                      <div className="w-[26px]"></div>
+                    </div>
+
+                    {/* Screen Content */}
+                    <div className="bg-[#f8f9fa] rounded-b-xl overflow-hidden flex-1">
+                      <div className="px-6 py-4 h-full flex flex-col overflow-auto">
+                        {/* Header with Logo */}
+                        <div className="flex items-center justify-between mb-3 bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <Image src="/logos/logo.png" alt="EdgeBook" width={120} height={30} className="object-contain" />
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-primary font-semibold">Dashboard</span>
+                            <span className="text-sm text-gray-400 font-medium">Picks</span>
+                            <span className="text-sm text-gray-400 font-medium">Stats</span>
+                            <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-600 rounded-full"></div>
+                          </div>
+                        </div>
+
+                        {/* Page Title with Button */}
+                        <div className="mb-3 flex items-start justify-between">
+                          <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Account Overview</h1>
+                            <p className="text-sm text-gray-600">Track your performance and revenue</p>
+                          </div>
+                          <button className="bg-gradient-to-r from-primary to-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md whitespace-nowrap">
+                            Create Pick
+                          </button>
+                        </div>
+
+                        {/* Stats Cards Grid */}
+                        <div className="grid grid-cols-4 gap-3 mb-3">
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">Net Revenue</p>
+                            <p className="text-xl font-bold text-gray-900">$8,920</p>
+                            <p className="text-[10px] text-gray-500">$9,240 total earned</p>
+                          </div>
+
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">Win Rate</p>
+                            <p className="text-xl font-bold text-gray-900">67%</p>
+                            <p className="text-[10px] text-gray-500">210W / 105L</p>
+                          </div>
+
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">Total Picks</p>
+                            <p className="text-xl font-bold text-gray-900">315</p>
+                            <p className="text-[10px] text-gray-500">3 pending</p>
+                          </div>
+
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">Total Sales</p>
+                            <p className="text-xl font-bold text-gray-900">892</p>
+                            <p className="text-[10px] text-gray-500">142 paid picks</p>
+                          </div>
+                        </div>
+
+                        {/* Secondary Stats */}
+                        <div className="grid grid-cols-3 gap-3 mb-3">
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <div className="w-7 h-7 bg-indigo-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mb-1">Total Views</p>
+                            <p className="text-base font-bold text-gray-900">12,458</p>
+                          </div>
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <div className="w-7 h-7 bg-pink-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-4 h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mb-1">Followers</p>
+                            <p className="text-base font-bold text-gray-900">1,247</p>
+                          </div>
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <div className="w-7 h-7 bg-teal-50 rounded-lg flex items-center justify-center">
+                                <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mb-1">Following</p>
+                            <p className="text-base font-bold text-gray-900">89</p>
+                          </div>
+                        </div>
+
+                        {/* Recent Picks */}
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3.5 flex-1 min-h-0">
+                          <h2 className="text-sm font-bold text-gray-900 mb-2">Recent Picks</h2>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">Lakers ML</p>
+                                <p className="text-xs text-gray-600">NBA • 2h ago</p>
+                              </div>
+                              <span className="text-xs font-bold text-green-600 px-2 py-1 bg-green-100 rounded">WON</span>
+                            </div>
+                            <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">Chiefs -3.5</p>
+                                <p className="text-xs text-gray-600">NFL • 5h ago</p>
+                              </div>
+                              <span className="text-xs font-bold text-green-600 px-2 py-1 bg-green-100 rounded">WON</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                      </div>
+
+                      {/* Laptop Base */}
+                      <div className="bg-gradient-to-b from-gray-800 to-gray-900 h-3 rounded-b-2xl">
+                        <div className="h-1 bg-gray-700"></div>
+                      </div>
+                      <div className="bg-gray-800 h-1.5 w-4/5 mx-auto rounded-b-lg shadow-xl"></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mobile View */}
+                {deviceView === 'mobile' && (
+                  <div className="flex justify-center">
+                    {/* iPhone Mockup - Realistic Design */}
+                    <div className="relative">
+                    {/* Outer Frame - Realistic iPhone */}
+                    <div className="relative w-[252px] h-[513px] bg-gradient-to-b from-gray-800 to-gray-900 rounded-[48px] shadow-2xl p-[3px]">
+                      {/* Screen Bezel */}
+                      <div className="w-full h-full bg-black rounded-[45px] overflow-hidden relative">
+                        {/* Notch */}
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[73px] h-[16px] bg-black rounded-b-[12px] z-20"></div>
+
+                        {/* Screen Content */}
+                        <div className="w-full h-full bg-white overflow-hidden">
+                          {/* Status Bar */}
+                          <div className="bg-white px-6 pt-3 pb-2 flex items-center justify-between relative z-10">
+                            <span className="text-sm font-semibold text-gray-900">9:41</span>
+                            <div className="flex items-center gap-1.5">
+                              <svg className="w-4 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                              </svg>
+                              <svg className="w-4 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M17.778 8.222c-4.296-4.296-11.26-4.296-15.556 0A1 1 0 01.808 6.808c5.076-5.077 13.308-5.077 18.384 0a1 1 0 01-1.414 1.414zM14.95 11.05a7 7 0 00-9.9 0 1 1 0 01-1.414-1.414 9 9 0 0112.728 0 1 1 0 01-1.414 1.414zM12.12 13.88a3 3 0 00-4.242 0 1 1 0 01-1.415-1.415 5 5 0 017.072 0 1 1 0 01-1.415 1.415zM9 16a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                              </svg>
+                              <svg className="w-6 h-3.5 text-gray-900" viewBox="0 0 24 12" fill="currentColor">
+                                <rect x="0" y="0" width="18" height="10" rx="2" ry="2" opacity="0.35"/>
+                                <rect x="0" y="0" width="18" height="10" rx="2" ry="2" opacity="0.4"/>
+                                <rect x="2" y="2" width="14" height="6" rx="1" ry="1"/>
+                                <rect x="20" y="4" width="2" height="4" rx="0.5" ry="0.5" opacity="0.4"/>
+                              </svg>
+                            </div>
+                          </div>
+
+                          {/* App Content - Real Dashboard */}
+                          <div className="px-4 pb-20 bg-[#f8f9fa] h-full overflow-y-auto">
+                            {/* Header */}
+                            <div className="bg-white rounded-xl shadow-sm p-3 mb-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <Image src="/logos/logo.png" alt="EdgeBook" width={80} height={21} className="object-contain" />
+                                <div className="w-7 h-7 bg-gradient-to-br from-primary to-emerald-600 rounded-full"></div>
+                              </div>
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h1 className="text-base font-bold text-gray-900">Account Overview</h1>
+                                  <p className="text-[10px] text-gray-600">Track your performance</p>
+                                </div>
+                                <button className="bg-gradient-to-r from-primary to-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-semibold shadow-md whitespace-nowrap">
+                                  Create Pick
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-2 gap-2.5 mb-3">
+                              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-2.5">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <div className="w-6 h-6 bg-emerald-50 rounded-lg flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-[9px] text-gray-600 font-medium">Net Revenue</p>
+                                </div>
+                                <p className="text-lg font-bold text-gray-900">$8,920</p>
+                                <p className="text-[8px] text-gray-500 mt-0.5">$9,240 total earned</p>
+                              </div>
+
+                              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-2.5">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-[9px] text-gray-600 font-medium">Win Rate</p>
+                                </div>
+                                <p className="text-lg font-bold text-gray-900">67%</p>
+                                <p className="text-[8px] text-gray-500 mt-0.5">210W / 105L</p>
+                              </div>
+
+                              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-2.5">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <div className="w-6 h-6 bg-purple-50 rounded-lg flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-[9px] text-gray-600 font-medium">Total Picks</p>
+                                </div>
+                                <p className="text-lg font-bold text-gray-900">315</p>
+                                <p className="text-[8px] text-gray-500 mt-0.5">3 pending</p>
+                              </div>
+
+                              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-2.5">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <div className="w-6 h-6 bg-orange-50 rounded-lg flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-[9px] text-gray-600 font-medium">Total Sales</p>
+                                </div>
+                                <p className="text-lg font-bold text-gray-900">892</p>
+                                <p className="text-[8px] text-gray-500 mt-0.5">142 paid picks</p>
+                              </div>
+                            </div>
+
+                            {/* Recent Picks */}
+                            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+                              <h3 className="text-xs font-bold text-gray-900 mb-2">Recent Picks</h3>
+                              <div className="space-y-1.5">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-900">Lakers ML</p>
+                                      <p className="text-[9px] text-gray-600">NBA • 2h ago</p>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-green-600 px-1.5 py-0.5 bg-green-100 rounded">WON</span>
+                                  </div>
+                                </div>
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-900">Chiefs -3.5</p>
+                                      <p className="text-[9px] text-gray-600">NFL • 5h ago</p>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-green-600 px-1.5 py-0.5 bg-green-100 rounded">WON</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bottom Navigation - iPhone Style */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 px-6 py-2 pb-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex flex-col items-center text-primary">
+                                <svg className="w-6 h-6 mb-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                                </svg>
+                                <span className="text-[10px] font-medium">Home</span>
+                              </div>
+                              <div className="flex flex-col items-center text-gray-400">
+                                <svg className="w-6 h-6 mb-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-[10px] font-medium">Picks</span>
+                              </div>
+                              <div className="flex flex-col items-center text-gray-400">
+                                <svg className="w-6 h-6 mb-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                                </svg>
+                                <span className="text-[10px] font-medium">Stats</span>
+                              </div>
+                              <div className="flex flex-col items-center text-gray-400">
+                                <svg className="w-6 h-6 mb-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-[10px] font-medium">Profile</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  </div>
+                )}
+                </div>
+
+                {/* View Tabs - Left Below Device Mockup */}
+                <div className="flex items-center w-fit mt-8">
+                  <button
+                    onClick={() => setDeviceView('desktop')}
+                    className={`px-6 py-2 text-lg font-semibold transition-all ${
+                      deviceView === 'desktop'
+                        ? 'text-gray-900'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Desktop
+                  </button>
+                  <span className="text-gray-300 text-lg px-4">|</span>
+                  <button
+                    onClick={() => setDeviceView('mobile')}
+                    className={`px-6 py-2 text-lg font-semibold transition-all ${
+                      deviceView === 'mobile'
+                        ? 'text-gray-900'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Mobile
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Side - QR and Download Section (50%) */}
+              <div className="w-full lg:w-1/2 flex flex-col items-center justify-center gap-9 min-h-[570px]">
+                {/* QR Code */}
+                <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-gray-200">
+                  <QrCode className="h-[194px] w-[194px] text-gray-900" />
+                </div>
+
+                {/* Text */}
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-900 mb-3">Scan to Download App</p>
+                  <p className="text-lg text-gray-600">iOS and Android</p>
+                </div>
+
+                {/* Download Buttons - Horizontal */}
+                <div className="flex items-center gap-4">
+                  <a href="#" className="bg-black text-white px-7 py-3.5 rounded-xl flex items-center gap-3 hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                    <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53-1.72-2.48-3.03-7.01-1.27-10.08.88-1.53 2.44-2.5 4.13-2.52 1.29-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.84M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    <span className="text-base font-semibold">iOS</span>
+                  </a>
+                  <a href="#" className="bg-black text-white px-7 py-3.5 rounded-xl flex items-center gap-3 hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                    <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 5.5v13c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5S3 4.67 3 5.5zm16.5 5c-.83 0-1.5.67-1.5 1.5v6.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V12c0-.83-.67-1.5-1.5-1.5zm-10 0c-.83 0-1.5.67-1.5 1.5v6.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V12c0-.83-.67-1.5-1.5-1.5zm5-6.5c-.83 0-1.5.67-1.5 1.5v13c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5z"/>
+                    </svg>
+                    <span className="text-base font-semibold">Android</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

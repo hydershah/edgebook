@@ -38,6 +38,9 @@ export async function GET(
             name: true,
             avatar: true,
             isVerified: true,
+            winRate: true,
+            totalPicks: true,
+            streak: true,
           },
         },
       },
@@ -103,14 +106,22 @@ export async function GET(
       isUnlocked: !!isUnlocked,
     }
 
-    // SECURITY: Completely hide content for premium picks that haven't been purchased
+    // SECURITY: Hide sensitive content for premium picks that haven't been purchased
+    // But keep prediction type info visible as a teaser
     if (pick.isPremium && !isOwner && !hasPurchased) {
-      // Return NO content details - prevent any content leakage
+      // Return limited content - hide details but show prediction type as teaser
       return NextResponse.json({
         pick: {
           ...pick,
-          details: '', // Completely hide details
-          odds: null, // Hide odds for locked premium picks
+          details: '', // Completely hide analysis details
+          // Keep prediction fields visible as a teaser
+          predictionType: pick.predictionType,
+          predictedWinner: pick.predictedWinner,
+          spreadValue: pick.spreadValue,
+          spreadTeam: pick.spreadTeam,
+          totalValue: pick.totalValue,
+          totalPrediction: pick.totalPrediction,
+          odds: pick.odds, // Show odds as part of the preview
           isLocked,
           isPremiumLocked: true,
         },

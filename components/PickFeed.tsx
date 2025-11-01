@@ -10,6 +10,10 @@ interface Pick {
     id: string
     name: string
     avatar?: string
+    isVerified?: boolean
+    winRate?: number
+    totalPicks?: number
+    streak?: number
   }
   pickType: string
   sport: string

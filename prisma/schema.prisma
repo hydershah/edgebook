@@ -320,6 +320,9 @@ model User {
   birthday                DateTime?
   gender                  String?
   location                String?
+  winRate                 Float?       @default(0)
+  totalPicks              Int          @default(0)
+  streak                  Int          @default(0)
   isPremium               Boolean      @default(false)
   isVerified              Boolean      @default(false)
   role                    UserRole     @default(USER)
