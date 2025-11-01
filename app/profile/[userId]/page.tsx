@@ -4,10 +4,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getUserProfile } from '@/lib/profile'
 import FollowButton from '@/components/FollowButton'
-import PickCard from '@/components/PickCard'
+import ProfileRecentPicks from '@/components/ProfileRecentPicks'
 import {
   Calendar,
-  Target,
   Trophy,
   TrendingUp,
   Instagram,
@@ -20,6 +19,7 @@ import {
   DollarSign,
   BadgeCheck,
   Eye,
+  Target,
 } from 'lucide-react'
 
 interface ProfilePageProps {
@@ -247,19 +247,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           {/* Enhanced Stats Section */}
           <div className="px-8 py-6 bg-gradient-to-br from-emerald-50 via-white to-blue-50">
             {/* Primary Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              {/* Total Profit */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="text-emerald-600" size={20} />
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Earnings</p>
-                </div>
-                <p className="text-3xl font-bold text-emerald-600">
-                  ${profile.earnings.netRevenue.toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Net revenue earned</p>
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {/* Win Rate */}
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-2">
@@ -276,12 +264,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="text-blue-600" size={20} />
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Correct Predictions</p>
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Wins</p>
                 </div>
                 <p className="text-3xl font-bold text-blue-600">
                   {profile.stats.won.toLocaleString()}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Winning picks</p>
+                <p className="text-xs text-gray-500 mt-1">{profile.stats.settled > 0 ? `${((profile.stats.won / profile.stats.settled) * 100).toFixed(0)}% success rate` : 'No settled picks'}</p>
               </div>
 
               {/* Total Picks */}
@@ -294,7 +282,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   {profile.stats.totalPicks.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {profile.stats.winLossRecord} record
+                  {profile.stats.winLossRecord}
                 </p>
               </div>
             </div>
@@ -433,28 +421,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           )}
         </div>
 
-        {/* Recent Picks */}
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 px-2">
-            Recent Picks
-          </h2>
-          {profile.recentPicks.length === 0 ? (
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl shadow-black/5 p-16 text-center">
-              <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">
-                No picks shared yet
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {profile.recentPicks.map((pick) => (
-                <div key={pick.id} className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 overflow-hidden">
-                  <PickCard pick={pick} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Recent Picks with Filters */}
+        <ProfileRecentPicks
+          picks={profile.recentPicks as any}
+          sports={profile.performanceBySport.map((s) => s.sport)}
+        />
       </div>
     </div>
   )

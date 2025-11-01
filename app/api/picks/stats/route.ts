@@ -10,17 +10,24 @@ export async function POST(request: NextRequest) {
 
     // Parse request body with error handling
     let body
+    let pickIds: string[]
+
     try {
-      body = await request.json()
+      const text = await request.text()
+      if (!text || text.trim() === '') {
+        console.error('Empty request body received')
+        return NextResponse.json({ error: 'Request body is empty' }, { status: 400 })
+      }
+      body = JSON.parse(text)
+      pickIds = body.pickIds
     } catch (error) {
       console.error('Error parsing request body:', error)
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
-    const { pickIds } = body
-
     if (!Array.isArray(pickIds) || pickIds.length === 0) {
-      return NextResponse.json({ error: 'Invalid pickIds' }, { status: 400 })
+      console.error('Invalid pickIds:', pickIds)
+      return NextResponse.json({ error: 'Invalid pickIds array' }, { status: 400 })
     }
 
     // Limit batch size to prevent abuse

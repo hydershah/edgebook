@@ -520,22 +520,29 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
         </h3>
 
         {/* Compact Prediction & Game Info Grid */}
-        <div className={`bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200 ${
-          (pick.isPremium && !isUnlocked && !isOwnPick) || pick.isPremiumLocked ? 'blur-sm' : ''
-        }`}>
+        <div className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
             {/* Prediction Info */}
             {pick.predictionType && (
               <div className="col-span-1">
                 <p className="text-xs text-gray-500 mb-0.5">Prediction</p>
                 <p className="text-sm font-bold text-gray-900">
-                  {pick.predictionType === 'WINNER' && pick.predictedWinner ?
-                    pick.predictedWinner :
-                   pick.predictionType === 'SPREAD' && pick.spreadTeam ?
-                    `${pick.spreadTeam} ${pick.spreadValue && pick.spreadValue > 0 ? '+' : ''}${pick.spreadValue}` :
-                   pick.predictionType === 'TOTAL' && pick.totalPrediction ?
-                    `${pick.totalPrediction} ${pick.totalValue}` :
-                    pick.predictionType}
+                  {(pick.isPremium && !isUnlocked && !isOwnPick) || pick.isPremiumLocked ? (
+                    <span className="inline-flex items-center space-x-1">
+                      <Lock size={12} className="text-gray-400" />
+                      <span className="text-gray-400 blur-sm select-none">••••••</span>
+                    </span>
+                  ) : (
+                    <>
+                      {pick.predictionType === 'WINNER' && pick.predictedWinner ?
+                        pick.predictedWinner :
+                       pick.predictionType === 'SPREAD' && pick.spreadTeam ?
+                        `${pick.spreadTeam} ${pick.spreadValue && pick.spreadValue > 0 ? '+' : ''}${pick.spreadValue}` :
+                       pick.predictionType === 'TOTAL' && pick.totalPrediction ?
+                        `${pick.totalPrediction} ${pick.totalValue}` :
+                        pick.predictionType}
+                    </>
+                  )}
                 </p>
               </div>
             )}
@@ -544,7 +551,16 @@ export default function PickCard({ pick, stats, onStatsUpdate }: PickCardProps) 
             {pick.odds && (
               <div className="col-span-1">
                 <p className="text-xs text-gray-500 mb-0.5">Odds</p>
-                <p className="text-sm font-bold text-primary">{pick.odds}</p>
+                <p className="text-sm font-bold text-primary">
+                  {(pick.isPremium && !isUnlocked && !isOwnPick) || pick.isPremiumLocked ? (
+                    <span className="inline-flex items-center space-x-1">
+                      <Lock size={12} className="text-gray-400" />
+                      <span className="text-gray-400 blur-sm select-none">••••</span>
+                    </span>
+                  ) : (
+                    pick.odds
+                  )}
+                </p>
               </div>
             )}
 
