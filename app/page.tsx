@@ -388,6 +388,15 @@ export default function Home() {
     return () => clearInterval(rotationInterval)
   }, [isCardActive])
 
+  // Auto-switch device view
+  useEffect(() => {
+    const deviceSwitchInterval = setInterval(() => {
+      setDeviceView((prev) => prev === 'desktop' ? 'mobile' : 'desktop')
+    }, 7000) // Switch every 7 seconds
+
+    return () => clearInterval(deviceSwitchInterval)
+  }, [])
+
   const currentProfile = EXPERT_PROFILES[currentProfileIndex]
 
   return (
@@ -403,6 +412,14 @@ export default function Home() {
           }
           100% {
             transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        @keyframes fadeIn {
+          0% {
+            opacity: 0;
+          }
+          100% {
             opacity: 1;
           }
         }
@@ -775,7 +792,7 @@ export default function Home() {
             <div className="flex flex-col items-center gap-8">
               <div className="relative flex w-full max-w-[620px] lg:max-w-[660px] h-[560px] items-center justify-center transition-all duration-300">
                 {deviceView === 'desktop' && (
-                  <div className="relative w-full scale-90">
+                  <div className="relative w-full scale-90 opacity-0 animate-[fadeIn_1.5s_ease-in_forwards]">
                     <div className="absolute -inset-5 sm:-inset-6 rounded-[48px] bg-gradient-to-br from-primary/20 via-transparent to-emerald-200/40 blur-2xl" />
                     <div className="relative mx-auto w-full overflow-hidden rounded-[34px] border-[5px] border-slate-700 bg-slate-700 shadow-[0_50px_110px_rgba(15,23,42,0.25)]">
                       <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
@@ -1047,11 +1064,11 @@ export default function Home() {
                 )}
 
                 {deviceView === 'mobile' && (
-                  <div className="relative flex justify-center w-full">
+                  <div className="relative flex justify-center w-full opacity-0 animate-[fadeIn_1.5s_ease-in_forwards]">
                     <div className="absolute -inset-5 sm:-inset-6 rounded-[48px] bg-gradient-to-br from-primary/20 via-transparent to-emerald-200/40 blur-2xl" />
                     <div className="relative w-[250px] rounded-[38px] border-[5px] border-slate-700 bg-slate-700 p-[2px] shadow-[0_32px_68px_rgba(15,23,42,0.2)]">
-                      <div className="relative rounded-[36px] border-[0.5px] border-slate-400/30 bg-slate-100/70 p-0 text-slate-900">
-                        <div className="absolute left-1/2 top-2 h-[1rem] w-24 -translate-x-1/2 rounded-b-3xl bg-black/40" />
+                      <div className="relative rounded-[36px] border-[0.5px] border-slate-400/30 bg-[#313F54] p-0 text-slate-900">
+                        <div className="absolute left-1/2 top-0 h-[1rem] w-24 -translate-x-1/2 rounded-b-3xl bg-[#313F54]" />
                         <div className="flex h-[460px] flex-col overflow-hidden rounded-[30px] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)] border-[0.5px] border-slate-200/40">
                           <div className="flex items-center justify-between px-4 pt-5">
                             <div>
