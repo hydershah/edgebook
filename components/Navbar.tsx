@@ -26,7 +26,7 @@ export default function Navbar() {
 
   const navItems = useMemo<NavItem[]>(
     () => [
-      { href: '/feed', label: 'Feed', icon: Home },
+      { href: '/feed', label: 'Games', icon: Home },
       { href: '/trending', label: 'Trending', icon: TrendingUp },
       { href: '/aianalyst', label: 'GameLens AI', imageSrc: '/gamelens.svg' },
     ],
